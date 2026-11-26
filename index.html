@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portway Freight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* VOICE: plain, operational, like a well-run dispatch desk.
+   IDEA: a shipping label and a freight manifest — bold labels, ruled rows.
+   PICTURE: the working console itself: PO manifest table first.
+   COLOUR and TYPE: container blue, safety orange accent, white/charcoal; Archivo, large for readability.
+   LAYOUT: header strip, quick-fetch bar, tabs, content; one column on phones. */
+:root{color-scheme:light dark;
+--bg:light-dark(#f3f5f9,#0b0f17);--card:light-dark(#ffffff,#151b26);--ink:light-dark(#111827,#e5e9f0);--mute:light-dark(#5b6476,#a6afbf);
+--line:light-dark(#e3e7ee,#283041);--blue:light-dark(#2563eb,#6b9bff);--blueInk:light-dark(#ffffff,#0b0f17);--blueSoft:light-dark(#eef3ff,#1a2540);--orange:#d97706;--orangeInk:light-dark(#b45309,#f5b041);
+--green:light-dark(#15803d,#4ade80);--red:light-dark(#dc2626,#f87171);
+--rail:#0f172a;--railInk:#e2e8f0;--railMute:#94a3b8;--railLine:#1e293b;--railActive:#2563eb;
+--display:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:clip}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--display);font-weight:700;line-height:1.2;margin:0;text-wrap:balance}
+h2{font-size:22px}h3{font-size:18px}
+.wrap{max-width:1320px;margin:0 auto;padding:0 max(3vw,14px)}
+.who{display:flex;gap:8px;align-items:center;font-size:15px}
+.who select{background:#fff;color:#121620;border:0;border-radius:6px;padding:9px 10px;min-height:44px;max-width:340px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:6px;padding:9px 16px;min-height:44px;cursor:pointer;font-weight:500}
+.btn:hover{border-color:var(--blue)}
+.btn.primary{background:var(--blue);color:var(--blueInk);border-color:var(--blue)}
+.btn.accent{background:var(--orange);color:#17120e;border-color:var(--orange)}
+.btn.ghost{background:transparent}
+.btn.small{min-height:36px;padding:5px 12px;font-size:15px}
+.btn.danger{color:var(--red)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--orange);outline-offset:2px}
+.quick{background:var(--card);border-bottom:1px solid var(--line)}
+.quick .wrap{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;padding-block:16px}
+.quick form{display:flex;gap:10px;align-items:end;flex:1 1 420px;flex-wrap:wrap}
+.quick label{flex:1 1 260px}
+.bulk{display:flex;gap:10px;flex-wrap:wrap}
+.cnt{display:inline-block;background:var(--blueSoft);color:var(--blue);border-radius:99px;padding:0 9px;margin-left:6px;font-size:14px}
+label{display:block;font-size:15px;font-weight:600;color:var(--mute)}
+input,select,textarea{display:block;width:100%;margin-top:5px;padding:10px 12px;font-size:16px;border:1px solid var(--line);border-radius:6px;background:var(--card);min-height:44px}
+textarea{min-height:90px;resize:vertical}
+input[type=checkbox],input[type=radio]{display:inline-block;width:20px;height:20px;min-height:0;margin:0 8px 0 0;vertical-align:middle}
+.app{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--rail);color:var(--railInk);padding:16px 10px;display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.rbrand{display:flex;gap:10px;align-items:center;padding:0 6px}
+.rbrand strong{font-size:17px;font-weight:600;line-height:1.2;display:block;color:#fff}
+.rbrand small{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#60a5fa;display:block}
+.side{display:flex;flex-direction:column;gap:3px}
+.side h4{margin:14px 12px 6px;font-size:12px;color:var(--railMute);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.side h4:first-child{margin-top:0}
+.side button{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:none;padding:10px 12px;min-height:46px;border-radius:8px;cursor:pointer;font-weight:500;font-size:16px;color:var(--railInk)}
+.side button:hover{background:var(--railLine)}
+.side button.on{background:var(--railActive);color:#fff;font-weight:600}
+.side button .c{font-size:13px;font-weight:600;background:#334155;color:#e2e8f0;border-radius:99px;padding:1px 9px}
+.side button.on .c{background:rgba(255,255,255,.22);color:#fff}
+.side button .c.hot{background:#7f1d1d;color:#fecaca}
+.railnote{margin-top:auto;font-size:14px;color:var(--railMute);padding:12px;border:1px solid var(--railLine);border-radius:6px}
+.railnote b{color:var(--railInk)}
+.mainw{min-width:0}
+.topbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:12px max(2.5vw,14px);background:var(--card);border-bottom:1px solid var(--line)}
+.topbar h1{font-size:18px;font-weight:700}
+.badge{display:inline-flex;gap:6px;align-items:center;font-size:13px;color:var(--mute);border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:2px 9px;margin-left:10px;vertical-align:middle;font-weight:500}
+.ptitle{margin:24px 0 4px}.ptitle h2{font-size:24px}.ptitle p{color:var(--mute);margin:4px 0 0}
+.topbar .who{color:var(--mute);white-space:nowrap}
+.topbar .who select{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.content{padding:0 max(2.5vw,14px)}
+@media(max-width:860px){.app{grid-template-columns:minmax(0,1fr)}.rail{position:static;height:auto;padding:12px;gap:10px}.side{flex-direction:row;overflow-x:auto}.side h4,.railnote{display:none}.side button{flex:none;width:auto;border-left:0;border-bottom:4px solid transparent}.side button.on{border-bottom-color:transparent}}
+.content .quickcard{margin-top:20px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end}
+.content .quickcard form{display:flex;gap:10px;align-items:end;flex:1 1 380px;flex-wrap:wrap}
+.content .quickcard label{flex:1 1 240px}
+@media(max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}.side{border-right:0;border-bottom:1px solid var(--line);padding:10px}.side nav{position:static;flex-direction:row;overflow-x:auto}.side h4{display:none}.side button{flex:none;width:auto}}
+main{padding-bottom:60px}
+.sec{margin-top:22px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 18px 16px}
+.kpi span{display:block;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}.kpi b{display:block;margin-top:10px;font-size:30px;font-weight:700;line-height:1.1;white-space:nowrap}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:18px 0 12px}
+.bar label{flex:1 1 240px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;min-height:40px;cursor:pointer;font-weight:600;font-size:15px}
+.chip.on{background:var(--ink);color:var(--card);border-color:var(--ink)}
+table{width:100%;border-collapse:collapse;background:var(--card)}
+th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--mute);font-weight:600;letter-spacing:.06em;text-transform:uppercase;background:var(--card)}
+td.r,th.r{text-align:right;white-space:nowrap}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--blueSoft)}
+.tbl{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:6px;font-size:14px;font-weight:500;white-space:nowrap;border:1px solid var(--line);background:var(--card)}
+.pill::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.s-po_issued{color:light-dark(#b45309,#f5b041);border-color:light-dark(#fcd9a8,#5c4213);background:light-dark(#fffaf0,#2a2110)}
+.s-docs_submitted{color:light-dark(#5b4fd6,#a9a1ff);border-color:light-dark(#d4cffc,#3b3570);background:light-dark(#f6f5ff,#1e1b38)}
+.s-rfq_open{color:light-dark(#2563eb,#6b9bff);border-color:light-dark(#bcd0fb,#24407a);background:light-dark(#f2f6ff,#152240)}
+.s-ff_awarded{color:light-dark(#4338ca,#8f9bff);border-color:light-dark(#c7cbf7,#30366e);background:light-dark(#f4f5ff,#1a1d3a)}
+.s-in_transit{color:light-dark(#0369a1,#5cc4f2);border-color:light-dark(#b6dff4,#1d4560);background:light-dark(#f0f9ff,#10273a)}
+.s-delivered{color:light-dark(#15803d,#4ade80);border-color:light-dark(#b7e4c5,#1d4a2e);background:light-dark(#f0fdf4,#0f2a1a)}
+.mono{font-family:var(--mono);font-size:15px}
+.small{font-size:15px;color:var(--mute)}
+.muted{color:var(--mute)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.qcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;margin-top:14px}
+.q{border:2px solid var(--line);border-radius:6px;padding:14px;background:var(--card)}
+.q.best{border-color:var(--green)}.q.fast{border-color:var(--blue)}
+.q .tot{font-size:30px;font-weight:700}
+.tag{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:6px;margin:0 6px 6px 0}
+.tag.low{background:var(--green);color:#fff}.tag.fast{background:var(--blue);color:var(--blueInk)}.tag.won{background:var(--orange);color:#17120e}.tag.lost{background:var(--bg);color:var(--mute);border:1px solid var(--line)}
+.note{border-left:5px solid var(--orange);background:light-dark(#fff6ef,#2a1d14);padding:12px 14px;border-radius:0 10px 10px 0}
+.empty{text-align:center;padding:40px 20px;color:var(--mute)}
+.empty b{display:block;color:var(--ink);font-size:20px;margin-bottom:6px}
+.overlay{position:fixed;inset:0;background:rgba(10,14,20,.55);display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px;overflow-y:auto;z-index:20}
+.modal{background:var(--card);border-radius:8px;width:min(980px,100%);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.mhead{display:flex;gap:12px;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.mhead h2{margin-right:auto}
+.mbody{padding:18px 20px 24px}
+.mtabs{display:flex;overflow-x:auto;gap:4px;padding:0 14px;border-bottom:1px solid var(--line)}
+.mtabs button{flex:none;border:0;background:none;padding:12px 12px;min-height:46px;font-weight:600;color:var(--mute);border-bottom:3px solid transparent;cursor:pointer}
+.mtabs button.on{color:var(--blue);border-color:var(--blue)}
+dl.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 18px;margin:0}
+dl.kv div{border-bottom:1px dashed var(--line);padding-bottom:6px}
+dt{font-size:14px;color:var(--mute);font-weight:600}dd{margin:2px 0 0;font-weight:600}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.form .full{grid-column:1/-1}
+.lbh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.calc{background:var(--blueSoft);border-radius:6px;padding:10px 12px;font-weight:700;margin-top:5px;min-height:44px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;margin-top:5px}
+.seg label{margin:0;padding:10px 16px;cursor:pointer;color:var(--ink);display:flex;align-items:center}
+.seg label:has(input:checked){background:var(--blue);color:#fff}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.docrow{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.docrow .nm{flex:1 1 220px}
+.ok{color:var(--green);font-weight:700}.bad{color:var(--red);font-weight:700}
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{position:relative;padding:0 0 18px 28px;border-left:3px solid var(--line);margin-left:8px}
+.timeline li:last-child{border-color:transparent}
+.timeline li::before{content:"";position:absolute;left:-10px;top:2px;width:17px;height:17px;border-radius:50%;background:var(--blue);border:3px solid var(--card)}
+.timeline li.done::before{background:var(--green)}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.rbox{border:1px solid var(--line);border-radius:8px;padding:12px 14px;background:var(--bg)}
+.rbox span{display:block;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.rbox b{display:block;font-size:20px;margin-top:4px;white-space:nowrap}
+.rbox em{display:block;font-style:normal;font-size:14px;color:var(--mute)}
+.doclist{display:flex;flex-wrap:wrap;gap:8px}
+.dchip{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:6px;padding:6px 10px;font-size:15px}
+.dchip.have{border-color:light-dark(#b7e4c5,#1d4a2e);background:light-dark(#f0fdf4,#0f2a1a)}
+.dchip.miss{border-color:light-dark(#f5c2c2,#5a1f1f);background:light-dark(#fef2f2,#2a1212);color:var(--red)}
+.ffpick{border-top:1px solid var(--line);padding-top:14px}
+.ffopt{display:flex;gap:4px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--ink);cursor:pointer;font-weight:400}
+.ffopt:has(input:checked){border-color:var(--blue);background:var(--blueSoft)}
+.ffopt.locked{opacity:.75;cursor:default}
+.ffopt input{margin-top:3px}
+.fetchcard{display:flex;flex-direction:column;gap:12px}
+.fetchcard .filters .btn{align-self:end}
+.sp-new{color:light-dark(#475569,#cbd5e1);border-color:light-dark(#cbd5e1,#334155);background:light-dark(#f8fafc,#1e2533)}
+.sp-po_issued{color:light-dark(#b45309,#f5b041);border-color:light-dark(#fcd9a8,#5c4213);background:light-dark(#fffaf0,#2a2110)}
+.sp-docs_submitted{color:light-dark(#5b4fd6,#a9a1ff);border-color:light-dark(#d4cffc,#3b3570);background:light-dark(#f6f5ff,#1e1b38)}
+.sp-nfa{color:light-dark(#7c2d92,#e19bf5);border-color:light-dark(#e9c6f3,#4f2a5c);background:light-dark(#fcf5ff,#24152b)}
+.sp-rfq_open{color:light-dark(#2563eb,#6b9bff);border-color:light-dark(#bcd0fb,#24407a);background:light-dark(#f2f6ff,#152240)}
+.sp-ff_awarded,.sp-in_transit{color:light-dark(#0369a1,#5cc4f2);border-color:light-dark(#b6dff4,#1d4560);background:light-dark(#f0f9ff,#10273a)}
+.sp-delivered{color:light-dark(#15803d,#4ade80);border-color:light-dark(#b7e4c5,#1d4a2e);background:light-dark(#f0fdf4,#0f2a1a)}
+.mprev{white-space:pre-wrap;border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--bg);font-size:15px;max-height:420px;overflow:auto;margin-top:5px}
+.mprev hr{border:0;border-top:1px solid var(--line);margin:8px 0}
+table.qt .big{font-size:19px}
+table.qt td.fw{min-width:180px}table.qt td.cr{min-width:150px}
+table.rt td.pgc{min-width:140px}table.rt td.dst{min-width:200px}
+.fetchcard .filters label{flex:1 1 150px}.fetchcard .filters label.grow{flex:1.5 1 200px}.fetchcard .filters .btn{flex:none}
+table.qt tr.won td{background:light-dark(#f0fdf4,#0f2a1a)}table.qt tr.lost td{opacity:.65}
+.qbar{height:6px;background:var(--bg);border-radius:3px;margin-top:6px;min-width:90px}.qbar i{display:block;height:100%;background:var(--blue);border-radius:3px}
+.pksum{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.pklist{display:flex;flex-direction:column;gap:8px;max-height:52vh;overflow-y:auto}
+.pk{display:grid;grid-template-columns:auto minmax(0,1.6fr) minmax(0,1fr) auto;gap:6px 14px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:12px 14px;color:var(--ink);font-weight:400;cursor:pointer}
+.pk.on{border-color:var(--blue);background:var(--blueSoft)}
+.pk.locked{opacity:.7;cursor:default}
+.pk input{margin:0}
+@media(max-width:600px){.pk{grid-template-columns:auto minmax(0,1fr)}.pkr{grid-column:2}}
+.kpi em{display:block;font-style:normal;margin-top:4px}
+.bars{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.brow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr) auto;gap:10px;align-items:center}
+.bl{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bt{height:14px;background:var(--bg);border-radius:4px;overflow:hidden}.bt i{display:block;height:100%;background:var(--blue);border-radius:0 4px 4px 0}
+.bv{text-align:right;white-space:nowrap}.bv b{display:block;font-size:15px}.bv em{font-style:normal;font-size:13px;color:var(--mute)}
+.brow:hover .bt i{filter:brightness(1.15)}
+.mchart{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;height:240px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:12px}
+.mcol{display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:4px}
+.mv{font-size:12.5px;font-weight:700;white-space:nowrap}.mbar{flex:1;width:min(48px,75%);display:flex;align-items:flex-end}.mbar i{display:block;width:100%;background:var(--blue);border-radius:4px 4px 0 0}
+.mcol:hover .mbar i{filter:brightness(1.15)}.ml{font-size:13px;font-weight:600;white-space:nowrap}
+ul.att{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.att li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:6px;background:var(--bg);font-size:15px;cursor:pointer}
+ul.att li .tagw{flex:none;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:5px;white-space:nowrap}
+ul.att li.crit .tagw{background:var(--red);color:#fff}ul.att li.warn .tagw{background:light-dark(#fff1d6,#3a2a0c);color:var(--orangeInk)}ul.att li.info .tagw{background:var(--blueSoft);color:var(--blue)}
+.warnt{color:var(--orangeInk);font-weight:700}.okc{color:var(--green);font-weight:700}
+@media(max-width:600px){.mchart{gap:3px}.mv{font-size:10.5px}.ml{font-size:11px}}
+.views{display:flex;gap:10px;flex-wrap:wrap}
+.view{flex:1 1 200px;display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:14px 18px;min-height:60px;cursor:pointer;font-weight:600;font-size:17px;text-align:left}
+.view b{font-size:26px}
+.view.on{border-color:var(--blue);background:var(--blueSoft);color:var(--blue);box-shadow:inset 0 -3px 0 var(--blue)}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.filters label{flex:1 1 170px}.filters label.grow{flex:2 1 260px}
+.ffbar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:12px 16px}
+.ffchips{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 400px}
+.ffc{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;min-height:40px;cursor:pointer;font-weight:600;font-size:15px}
+.ffc.on{border-color:var(--blue);background:var(--blueSoft);color:var(--blue)}
+table.rt{font-size:15px}
+table.rt td,table.rt th{padding:10px 8px}
+table.rt td.ck,table.rt th.ck{width:40px;padding-right:0}
+table.rt td.eq{min-width:190px}table.rt td.sp{min-width:160px}
+table.rt .desc{font-weight:600;margin-top:2px}
+table.rt tr.sel td{background:var(--blueSoft)}
+.nw{white-space:nowrap}
+.polink{color:var(--blue);font-weight:600;text-decoration:none}.polink:hover{text-decoration:underline}
+td.docs{min-width:170px;max-width:200px}
+td.docs a,td.docs .dmiss{display:inline-block;margin:0 10px 2px 0;white-space:nowrap}
+td.docs a{color:var(--blue);text-decoration:underline;text-underline-offset:2px}
+.dmiss{color:var(--red);font-size:14px}
+td.act{min-width:104px}td.act .btn{margin-top:6px}
+.age{font-weight:700}.age.risk{color:var(--orangeInk)}.age.late{color:var(--red)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:13px 20px;border-radius:6px;font-weight:600;z-index:40;max-width:min(680px,92vw);box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.alert{display:flex;gap:12px;padding:14px;border-bottom:1px solid var(--line);cursor:pointer}
+.alert.unread{background:var(--blueSoft)}
+.alert .dot{flex:none;width:12px;height:12px;border-radius:50%;margin-top:7px;background:var(--line)}
+.alert.unread .dot{background:var(--orange)}
+.pocard{margin-bottom:16px}
+.pocard .hd{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+pre.prev{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);padding:14px;border-radius:6px;max-height:60vh;overflow:auto;font-size:15px}
+.previmg{max-width:100%;border:1px solid var(--line);border-radius:6px;background:#fff}
+.awbres{margin-top:6px;font-size:15px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.scroll{overflow-x:auto}
+@media(max-width:600px){body{font-size:16px}table{font-size:15px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 12px;padding-inline-start:8.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:8em;margin-inline-start:-8em;white-space:normal;color:var(--mute);font-size:14px}.stack td:empty{display:none}.who{width:100%}.who select{flex:1;max-width:none}}
+@media(prefers-reduced-motion:no-preference){.toast{animation:up .25s ease-out}@keyframes up{from{transform:translate(-50%,12px);opacity:0}}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<script>
+{
+const KEY='portway-freight-v1', UIKEY='portway-freight-ui';
+const STATUS={po_issued:'PO Issued',docs_submitted:'Docs Submitted',rfq_open:'RFQ Open',ff_awarded:'Ariba PO',in_transit:'In Transit',delivered:'Delivered'};
+const MILE={awaiting_pickup:'Awaiting pickup',picked_up:'Picked up',customs_cleared:'Customs cleared',in_transit:'In transit',arrived_destination_port:'Arrived at destination port',out_for_delivery:'Out for delivery',delivered:'Delivered'};
+const REQ=['Commercial Invoice','Packing List & Packaging Material','Insurance Certificate','Import & Customs Docs','Certificate of Origin'];
+const MUST=['Commercial Invoice','Packing List & Packaging Material'];
+const AIR={'297':'China Airlines Cargo','014':'Air Canada Cargo','724':'Swiss WorldCargo','205':'ANA Cargo','131':'JAL Cargo','001':'American Airlines Cargo','016':'United Cargo','020':'Lufthansa Cargo','057':'Air France Cargo','074':'KLM Cargo','098':'Air India','125':'British Airways World Cargo','157':'Qatar Airways Cargo','160':'Cathay Cargo','172':'Cargolux','176':'Emirates SkyCargo','180':'Korean Air Cargo','235':'Turkish Cargo','618':'Singapore Airlines Cargo','988':'Asiana Cargo'};
+const MAXFILE=800*1024;
+const SHIPTO=[['BLR – Bangalore plant, Karnataka','Bengaluru (BLR)'],['AMD – Ahmedabad plant, Gujarat','Ahmedabad (AMD)'],['GAU – Guwahati plant, Assam','Guwahati (GAU)']];
+const COO={FRA:'Germany',ICN:'South Korea',DXB:'United Arab Emirates',HKG:'China',TPE:'Taiwan',AMS:'Netherlands',LHR:'United Kingdom',ORD:'United States',YYZ:'Canada',SIN:'Singapore',ZRH:'Switzerland',KIX:'Japan',BOM:'India',DEL:'India',CCU:'India'};
+const REGION={Japan:'APAC','South Korea':'APAC',Singapore:'APAC',China:'APAC',Taiwan:'APAC',Germany:'EMEA',Switzerland:'EMEA','United Arab Emirates':'EMEA',Netherlands:'EMEA','United Kingdom':'EMEA','United States':'North America',Canada:'North America',India:'APAC'};
+const cooOf=port=>COO[(String(port).match(/\((\w+)\)/)||[])[1]]||'';
+const blank=()=>({stakeholders:[],catalog:[],pos:[],notifications:[]});
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=p=>p+'-'+Math.random().toString(36).slice(2,9);
+const nowIso=()=>new Date().toISOString();
+const pad=n=>String(n).padStart(2,'0');
+const loc=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const day=n=>{const d=new Date();d.setDate(d.getDate()+n);return loc(d).slice(0,10)};
+const at=(n,h=10)=>{const d=new Date();d.setDate(d.getDate()+n);d.setHours(h,0,0,0);return loc(d)};
+const fdate=v=>{if(!v)return'—';const d=new Date(v);return isNaN(d)?esc(v):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+const fdt=v=>{if(!v)return'—';const d=new Date(v);return isNaN(d)?esc(v):d.toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
+const usd=n=>'$'+Number(n||0).toLocaleString('en-US',{maximumFractionDigits:Number(n)<100&&Number(n)%1?2:0});
+const num=v=>{const n=parseFloat(v);return isFinite(n)?n:0};
+const b64=s=>btoa(unescape(encodeURIComponent(s)));
+const unb64=s=>decodeURIComponent(escape(atob(s)));
+const low=s=>String(s||'').trim().toLowerCase();
+const pill=s=>`<span class="pill s-${esc(s)}">${esc(STATUS[s]||s)}</span>`;
+
+/* ---------- storage ---------- */
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);return Object.assign(blank(),d)}}catch(e){}return blank()}
+let storageOk=true;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db));storageOk=true}catch(e){if(storageOk)toast('Browser storage is full or blocked — changes are kept for this visit only.');storageOk=false}}
+function saveUi(){try{localStorage.setItem(UIKEY,JSON.stringify({role:ui.role,as:ui.as,tab:ui.tab}))}catch(e){}}
+let db=load();
+let ui={role:'logistics',as:'',tab:'pos',q:'',group:'All',status:'',modal:null,mtab:'specs',preview:null,confirm:'',sapResult:null,editId:null,editType:null,openPo:null,xf:{grp:'All',dest:'',reg:''},pf:{pg:'',mg:'',sup:'',dest:'',q:'',st:''},psel:[],fetchedAt:'',mailT:null,qf:{v:'open',q:''},pick:[],pickQ:'',rf:{q:'',sup:'',grp:'All',docs:'',st:'ready'},rsel:[],rff:null};
+try{Object.assign(ui,JSON.parse(localStorage.getItem(UIKEY)||'{}'))}catch(e){}
+const h=location.hash.slice(1);if(h==='supplier'||h==='forwarder'){ui.role=h;ui.as=''}
+
+let tt;function toast(m){$('#toast').innerHTML=`<div class="toast" role="status">${esc(m)}</div>`;clearTimeout(tt);tt=setTimeout(()=>$('#toast').innerHTML='',4200)}
+function notify(to,title,body,poId){db.notifications.unshift({id:uid('N'),to:to==='logistics'?'logistics':low(to),title,body,poId:poId||'',read:false,at:nowIso()})}
+const ffs=()=>db.stakeholders.filter(s=>s.type==='ff');
+const sups=()=>db.stakeholders.filter(s=>s.type==='supplier');
+const po=id=>db.pos.find(p=>p.id===id);
+const ffName=e=>(ffs().find(f=>low(f.email)===low(e))||{}).companyName||e;
+const me=()=>db.stakeholders.find(s=>low(s.email)===low(ui.as));
+
+/* ---------- calculations ---------- */
+function cbmOf(p){const u=num(p.units),v=num(p.uL)*num(p.uW)*num(p.uH);if(u>0&&v>0)return +(u*v/1e6).toFixed(3);const m=num(p.mL)*num(p.mW)*num(p.mH);return +(m/1e6).toFixed(3)}
+function awbCheck(v){const d=String(v||'').replace(/\D/g,'');
+ if(!d)return{ok:false,empty:true,msg:'Format XXX-XXXXXXXX: 3-digit airline prefix + 7-digit serial + check digit.'};
+ if(d.length!==11)return{ok:false,msg:`Needs 11 digits, you have ${d.length}. Format XXX-XXXXXXXX.`};
+ const p=d.slice(0,3),s=d.slice(3,10),c=+d[10],e=Number(s)%7,air=AIR[p];
+ if(e!==c)return{ok:false,msg:`Check digit fails: serial ${s} mod 7 = ${e}, but the last digit is ${c}.`};
+ return{ok:true,awb:`${p}-${d.slice(3)}`,airline:air||'',msg:air?`Valid AWB · ${air} (prefix ${p})`:`Check digit valid · airline prefix ${p} not in the lookup list`}}
+function quoteFlags(qs){const live=qs.filter(q=>q.status!=='withdrawn');if(!live.length)return{};const lo=Math.min(...live.map(q=>q.totalUsd)),fa=Math.min(...live.map(q=>q.transitDays));return{lo,fa}}
+
+/* ---------- sample data (seeder) ---------- */
+function sampleData(){
+ const S=[
+ {id:'FF001',type:'ff',ffCode:'FF001',companyName:'BlueHarbor Logistics',contactName:'Ritika Sen',email:'ops@blueharbor-logistics.example',portOrCity:'Kolkata (CCU)',serviceModes:['Air','Sea']},
+ {id:'FF002',type:'ff',ffCode:'FF002',companyName:'Skyline Cargo Movers',contactName:'Arjun Mehta',email:'quotes@skyline-cargo.example',portOrCity:'Mumbai (BOM)',serviceModes:['Air','Courier']},
+ {id:'FF003',type:'ff',ffCode:'FF003',companyName:'Meridian Freight Partners',contactName:'Lena Fischer',email:'rfq@meridian-freight.example',portOrCity:'Frankfurt (FRA)',serviceModes:['Air','Sea','Road']},
+ {id:'FF004',type:'ff',ffCode:'FF004',companyName:'Northstar Air & Sea',contactName:'Kelvin Wong',email:'air@northstar-airsea.example',portOrCity:'Hong Kong (HKG)',serviceModes:['Air','Sea']},
+ {id:'FF005',type:'ff',ffCode:'FF005',companyName:'Indus Air Cargo Services',contactName:'Neha Kapoor',email:'bookings@indus-aircargo.example',portOrCity:'Delhi (DEL)',serviceModes:['Air','Courier']},
+ {id:'FF006',type:'ff',ffCode:'FF006',companyName:'Eastbridge Global Logistics',contactName:'Wei Ling Ong',email:'rfq@eastbridge-global.example',portOrCity:'Singapore (SIN)',serviceModes:['Air','Sea']},
+ {id:'FF007',type:'ff',ffCode:'FF007',companyName:'Brahmaputra Freight Lines',contactName:'Pranjal Das',email:'quotes@brahmaputra-freight.example',portOrCity:'Guwahati (GAU)',serviceModes:['Air','Road']},
+ {id:'FF008',type:'ff',ffCode:'FF008',companyName:'Alpenroute Spedition',contactName:'Marco Bianchi',email:'air@alpenroute.example',portOrCity:'Zurich (ZRH)',serviceModes:['Air','Road']},
+ {id:'FF009',type:'ff',ffCode:'FF009',companyName:'Sakura Global Forwarding',contactName:'Yuki Tanaka',email:'export@sakura-global.example',portOrCity:'Osaka (KIX)',serviceModes:['Air','Sea']},
+ {id:'FF010',type:'ff',ffCode:'FF010',companyName:'Gulfline Cargo',contactName:'Omar Haddad',email:'ops@gulfline-cargo.example',portOrCity:'Dubai (DXB)',serviceModes:['Air','Sea']},
+ {id:'V100231',type:'supplier',vendorCode:'V100231',companyName:'Kestrel Precision Tools',contactName:'Jonas Weber',email:'dispatch@kestrel-tools.example',purchaseGroup:'Equipment',city:'Stuttgart, Germany'},
+ {id:'V100457',type:'supplier',vendorCode:'V100457',companyName:'Orion Vacuum Systems',contactName:'Min-jun Park',email:'exports@orion-vacuum.example',purchaseGroup:'Equipment',city:'Seoul, South Korea'},
+ {id:'V200118',type:'supplier',vendorCode:'V200118',companyName:'Lotus Specialty Materials',contactName:'Farah Qureshi',email:'shipping@lotus-materials.example',purchaseGroup:'Material',city:'Dubai, UAE'},
+ {id:'V200342',type:'supplier',vendorCode:'V200342',companyName:'Harbourline Packaging',contactName:'Grace Lam',email:'logistics@harbourline-pack.example',purchaseGroup:'Material',city:'Hong Kong'}];
+ const sup=id=>S.find(s=>s.id===id);
+ const base=(n,g,vid,desc,origin,inc,dd,items)=>{const v=sup(vid);return{poNumber:n,purchaseGroup:g,description:desc,supplierName:v.companyName,supplierEmail:v.email,vendorCode:v.vendorCode,plant:SHIPTO[2][0],originPort:origin,destinationPort:SHIPTO[2][1],incoterms:inc,deliveryDate:dd,items}};
+ const C=[
+ base('4500012101','Equipment','V100231','Wire bonder capillary spares kit','Frankfurt (FRA)','FCA',day(30),[{line:10,material:'EQ-SPR-2201',desc:'Bond head capillary set',qty:12,unit:'EA'},{line:20,material:'EQ-SPR-2207',desc:'Transducer assembly',qty:2,unit:'EA'}]),
+ base('4500012102','Equipment','V100457','Dry vacuum pump module','Seoul (ICN)','FCA',day(35),[{line:10,material:'EQ-VAC-0910',desc:'Dry pump module 600 m³/h',qty:3,unit:'EA'}]),
+ base('4500012103','Equipment','V100231','Wafer handling end-effectors','Frankfurt (FRA)','EXW',day(28),[{line:10,material:'EQ-ROB-1120',desc:'Ceramic end-effector 300 mm',qty:6,unit:'EA'}]),
+ base('4500012104','Material','V200118','DI water final filters','Dubai (DXB)','CPT',day(21),[{line:10,material:'MT-FLT-0450',desc:'0.05 µm final filter cartridge',qty:240,unit:'EA'}]),
+ base('4500012105','Material','V200342','Moisture barrier bags','Hong Kong (HKG)','FCA',day(25),[{line:10,material:'MT-PKG-3310',desc:'MBB 18x22 in, 7 mil',qty:15000,unit:'EA'}]),
+ base('4500012106','Material','V200342','ESD-safe JEDEC trays','Hong Kong (HKG)','FCA',day(26),[{line:10,material:'MT-PKG-2104',desc:'JEDEC tray, high-temp',qty:2000,unit:'EA'}])
+ ];
+ const sup2=id=>({V100512:{companyName:'Vantage Thermal Systems',email:'export@vantage-thermal.example'},V100689:{companyName:'Alpine Metrology',email:'shipping@alpine-metrology.example'},V100733:{companyName:'Sakura Automation',email:'logistics@sakura-automation.example'}}[id]||sup(id));
+ const fb=(n,g,vid,desc,origin,mat,qty,unit)=>{const v=sup2(vid);return{poNumber:n,purchaseGroup:g,description:desc,supplierName:v.companyName,supplierEmail:v.email,vendorCode:vid,plant:SHIPTO[2][0],originPort:origin,destinationPort:SHIPTO[2][1],incoterms:'FCA',deliveryDate:day(30),items:[{line:10,material:mat,desc,qty,unit}]}};
+ C.push(fb('4500012111','Equipment','V100689','Ellipsometer lamp module','Zurich (ZRH)','EQ-EL-0110',2,'EA'),fb('4500012112','Equipment','V100733','Pick-and-place nozzle set','Osaka (KIX)','EQ-PP-0322',30,'EA'),fb('4500012113','Equipment','V100512','Chiller pump assembly','Singapore (SIN)','EQ-CH-3310',1,'EA'),
+  fb('4500012114','Equipment','V100457','Dry pump controller board','Seoul (ICN)','EQ-VAC-0950',4,'EA'),fb('4500012115','Equipment','V100231','Dicing blade flange set','Frankfurt (FRA)','EQ-DS-4420',10,'EA'),fb('4500012116','Material','V200342','Carrier tape 12 mm','Hong Kong (HKG)','MT-PKG-1201',400,'RL'),
+  fb('4500012117','Material','V200118','Cleanroom wipes (cases)','Dubai (DXB)','MT-CON-0610',80,'CS'),fb('4500012118','Equipment','V100733','Burn-in socket kit','Osaka (KIX)','EQ-BI-2055',16,'EA'));
+ C.forEach((c,i)=>{c.id=c.poNumber;c.source='Ariba';c.poDate=at(-1-(i%4),10);const d=SHIPTO[i%5===3?2:i%4===1?1:0];c.plant=d[0];c.destinationPort=d[1]});
+
+ const doc=(poN,type,who,role,n)=>{
+  const body={'Commercial Invoice':`COMMERCIAL INVOICE\nPO: ${poN}\nSeller: ${who}\nBuyer: Logistics Center (ship-to as per PO)\nInvoice no: CI-${poN.slice(-4)}-01\nCurrency: USD\nSample document for demo use.`,
+  'Packing List & Packaging Material':`package_no,type,length_cm,width_cm,height_cm,gross_kg,material\n1,${n.mode},${n.uL},${n.uW},${n.uH},${(n.grossKg/n.units).toFixed(1)},Heat-treated wood / ESD foam\n2,${n.mode},${n.uL},${n.uW},${n.uH},${(n.grossKg/n.units).toFixed(1)},Heat-treated wood / ESD foam`,
+  'Insurance Certificate':`MARINE & AIR CARGO INSURANCE CERTIFICATE\nPO: ${poN}\nInsured value: 110% of CIF\nCoverage: Institute Cargo Clauses (A)\nSample document for demo use.`,
+  'Import & Customs Docs':`IMPORT & CUSTOMS PACK\nPO: ${poN}\nHS code: 8486.90\nIEC on file · BOE to be filed at GAU\nSample document for demo use.`,
+  'Certificate of Origin':`CERTIFICATE OF ORIGIN\nPO: ${poN}\nExporter: ${who}\nCountry of origin: as per invoice\nSample document for demo use.`,
+  'AWB Receipt':`AIR WAYBILL RECEIPT\nPO: ${poN}\nAWB: ${n}\nIssued by carrier on booking.\nSample document for demo use.`,
+  'Proof of Delivery':`PROOF OF DELIVERY\nPO: ${poN}\nReceived at plant stores in good condition.\nSigned: Stores In-charge\nSample document for demo use.`}[type];
+  const csv=type.startsWith('Packing');
+  const name=type.replace(/[^A-Za-z]+/g,'_')+'_'+poN+(csv?'.csv':'.txt');
+  return{id:`D-${poN}-${type.replace(/\W+/g,'').slice(0,12)}`,type,name,mime:csv?'text/csv':'text/plain',size:body.length,dataUrl:`data:${csv?'text/csv':'text/plain'};base64,${b64(body)}`,uploadedBy:role==='ff'?'forwarder':'supplier',by:who,at:at(-6)}};
+ const photo=poN=>{const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="480" height="300"><rect width="480" height="300" fill="#eef2f7"/><rect x="70" y="110" width="160" height="130" fill="#c9a36b" stroke="#7a5a2b" stroke-width="4"/><rect x="250" y="80" width="160" height="160" fill="#d8b47c" stroke="#7a5a2b" stroke-width="4"/><text x="240" y="40" font-family="Arial" font-size="22" text-anchor="middle" fill="#121620">Crated cargo · PO ${poN}</text><text x="240" y="280" font-family="Arial" font-size="16" text-anchor="middle" fill="#525b6b">Sample packaging photo</text></svg>`;return{id:`D-${poN}-photo`,type:'Packing List & Packaging Material',name:`Packaging_photo_${poN}.svg`,mime:'image/svg+xml',size:svg.length,dataUrl:'data:image/svg+xml;base64,'+b64(svg),uploadedBy:'supplier',by:'Supplier',at:at(-6)}};
+ const pk=(mode,q,units,cr,m,u,net,gross,pc,ready,rem)=>{const p={mode,qtyAsPerPo:q,units,cratesPerUnit:cr,totalCrates:units*cr,mL:m[0],mW:m[1],mH:m[2],uL:u[0],uW:u[1],uH:u[2],netKg:net,grossKg:gross,perCountKg:pc,pickupReadyDate:ready,remarks:rem,submittedAt:at(-6)};p.cbm=cbmOf(p);return p};
+ const qt=(poN,ff,b,s,t,car,route,st,dOff)=>{const f=S.find(x=>x.id===ff);return{id:`Q-${poN}-${ff}`,ffEmail:f.email,ffCompany:f.companyName,baseUsd:b,surchargeUsd:s,totalUsd:b+s,transitDays:t,carrier:car,route,validUntil:day(14),remarks:'Includes fuel and security surcharge. Excludes destination duties.',status:st,at:at(dOff)}};
+ const ev=(m,n,o)=>({id:uid('T'),milestone:m,note:n,at:at(o,9+Math.abs(o)%8),by:'Forwarder'});
+ const allFF=S.filter(s=>s.type==='ff').slice(0,4).map(s=>s.email);
+ const mk=(c,extra)=>({...c,id:'PO-'+c.poNumber,requestNote:'Please share packaging (boxes/cartons), LBH in cm, net & gross weight, pickup-ready date, and upload Commercial Invoice, Packing List, Insurance, Import docs and Certificate of Origin.',autoDispatchRfq:false,invitedForwarderEmails:[],awardedForwarderEmail:'',awardedForwarderCompany:'',aribaPoRef:'',aribaSyncStatus:'',packing:null,documents:[],quotes:[],shipment:null,tracking:[],createdAt:at(-10),updatedAt:at(-1),...extra});
+ const P=[];
+ P.push(mk(base('4500012001','Equipment','V100231','Die bonder ejector pin kit','Frankfurt (FRA)','FCA',day(32),[{line:10,material:'EQ-DB-0331',desc:'Ejector pin kit',qty:20,unit:'SET'}]),{status:'po_issued',invitedForwarderEmails:allFF,createdAt:at(-2),updatedAt:at(-2)}));
+ const p2=pk('cartons',1200,24,0,[240,120,110],[60,40,45],310,356,0.26,day(3),'Cartons palletised on 2 pallets, stretch-wrapped.');
+ P.push(mk(base('4500012002','Material','V200118','ESD-safe JEDEC trays (high-temp)','Dubai (DXB)','CPT',day(22),[{line:10,material:'MT-PKG-2104',desc:'JEDEC tray, high-temp',qty:1200,unit:'EA'}]),{status:'docs_submitted',packing:p2,invitedForwarderEmails:allFF,documents:REQ.map(t=>doc('4500012002',t,'Lotus Specialty Materials','supplier',p2))}));
+ const p3=pk('boxes',6,3,2,[360,120,140],[120,110,135],820,1010,136.7,day(2),'Fragile – keep upright. Tilt indicators fitted.');
+ P.push(mk(base('4500012003','Equipment','V100457','Dry vacuum pump modules','Seoul (ICN)','FCA',day(30),[{line:10,material:'EQ-VAC-0910',desc:'Dry pump module 600 m³/h',qty:6,unit:'EA'}]),{status:'rfq_open',packing:p3,invitedForwarderEmails:allFF,documents:[...REQ.map(t=>doc('4500012003',t,'Orion Vacuum Systems','supplier',p3)),photo('4500012003')],
+  quotes:[qt('4500012003','FF001',6200,840,5,'Korean Air Cargo','ICN → DEL → GAU','submitted',-2),qt('4500012003','FF002',5800,1150,7,'Asiana Cargo','ICN → BOM → GAU','submitted',-2),qt('4500012003','FF003',6900,600,4,'Korean Air Cargo','ICN → CCU → GAU','submitted',-1)]}));
+ const p4=pk('cartons',20000,40,0,[240,200,150],[60,50,50],520,588,0.026,day(1),'40 cartons on 4 pallets.');
+ P.push(mk(base('4500012004','Material','V200342','Moisture barrier bags','Hong Kong (HKG)','FCA',day(18),[{line:10,material:'MT-PKG-3310',desc:'MBB 18x22 in, 7 mil',qty:20000,unit:'EA'}]),{status:'ff_awarded',packing:p4,invitedForwarderEmails:allFF,awardedForwarderEmail:S[3].email,awardedForwarderCompany:S[3].companyName,aribaPoRef:'ARIBA-PO-'+day(-2).replace(/-/g,'')+'-4821',aribaSyncStatus:'requested',
+  documents:[...REQ.map(t=>doc('4500012004',t,'Harbourline Packaging','supplier',p4)),doc('4500012004','AWB Receipt','Northstar Air & Sea','ff','160-77140000')],
+  quotes:[qt('4500012004','FF004',2400,380,4,'Cathay Cargo','HKG → DEL → GAU','awarded',-4),qt('4500012004','FF001',2650,300,5,'Air India','HKG → CCU → GAU','not_selected',-4),qt('4500012004','FF002',2550,420,6,'Cathay Cargo','HKG → BOM → GAU','not_selected',-3)],
+  shipment:{awb:'160-77140000',carrier:'Cathay Cargo',pickupTime:at(1,11),pickupLocation:'Harbourline warehouse, Kwai Chung, Hong Kong',originPort:'Hong Kong (HKG)',destinationPort:'Guwahati (GAU)',etd:at(2,22),eta:at(5,14),actualDelivery:'',milestone:'awaiting_pickup',note:'Booking confirmed, pickup slot reserved.'},
+  tracking:[ev('awaiting_pickup','Booking confirmed on Cathay Cargo, pickup slot reserved.',-1)]}));
+ const p5=pk('boxes',4,2,2,[180,110,95],[90,110,95],140,212,35,day(-6),'Shock watch labels on each crate.');
+ P.push(mk(base('4500012005','Equipment','V100231','Wafer handling end-effectors','Frankfurt (FRA)','FCA',day(6),[{line:10,material:'EQ-ROB-1120',desc:'Ceramic end-effector 300 mm',qty:4,unit:'EA'}]),{status:'in_transit',packing:p5,invitedForwarderEmails:allFF,awardedForwarderEmail:S[2].email,awardedForwarderCompany:S[2].companyName,aribaPoRef:'ARIBA-PO-'+day(-8).replace(/-/g,'')+'-1307',aribaSyncStatus:'requested',
+  documents:[...REQ.map(t=>doc('4500012005',t,'Kestrel Precision Tools','supplier',p5)),doc('4500012005','AWB Receipt','Meridian Freight Partners','ff','020-84920146')],
+  quotes:[qt('4500012005','FF003',1900,260,5,'Lufthansa Cargo','FRA → DEL → GAU','awarded',-9),qt('4500012005','FF004',2050,240,6,'Turkish Cargo','FRA → IST → DEL → GAU','not_selected',-9)],
+  shipment:{awb:'020-84920146',carrier:'Lufthansa Cargo',pickupTime:at(-4,10),pickupLocation:'Kestrel Precision Tools, Stuttgart',originPort:'Frankfurt (FRA)',destinationPort:'Guwahati (GAU)',etd:at(-2,21),eta:at(1,16),actualDelivery:'',milestone:'in_transit',note:'Departed FRA, connecting at DEL.'},
+  tracking:[ev('awaiting_pickup','Booking confirmed with Lufthansa Cargo.',-5),ev('picked_up','Picked up from supplier, 2 crates.',-4),ev('customs_cleared','Export customs cleared at FRA.',-3),ev('in_transit','Departed FRA, connecting at DEL.',-2)]}));
+ const p6=pk('cartons',300,15,0,[200,120,120],[50,40,40],180,214,0.6,day(-15),'Keep dry. Cartons sealed with moisture strip.');
+ P.push(mk(base('4500012006','Material','V200118','DI water final filters','Dubai (DXB)','CPT',day(-8),[{line:10,material:'MT-FLT-0450',desc:'0.05 µm final filter cartridge',qty:300,unit:'EA'}]),{status:'delivered',packing:p6,invitedForwarderEmails:allFF,awardedForwarderEmail:S[1].email,awardedForwarderCompany:S[1].companyName,aribaPoRef:'ARIBA-PO-'+day(-16).replace(/-/g,'')+'-0952',aribaSyncStatus:'requested',
+  documents:[...REQ.map(t=>doc('4500012006',t,'Lotus Specialty Materials','supplier',p6)),doc('4500012006','AWB Receipt','Skyline Cargo Movers','ff','176-50412003'),doc('4500012006','Proof of Delivery','Skyline Cargo Movers','ff','')],
+  quotes:[qt('4500012006','FF002',1650,210,3,'Emirates SkyCargo','DXB → DEL → GAU','awarded',-17),qt('4500012006','FF001',1720,180,4,'Air India','DXB → BOM → GAU','not_selected',-17)],
+  shipment:{awb:'176-50412003',carrier:'Emirates SkyCargo',pickupTime:at(-13,9),pickupLocation:'Lotus warehouse, Jebel Ali',originPort:'Dubai (DXB)',destinationPort:'Guwahati (GAU)',etd:at(-12,3),eta:at(-10,15),actualDelivery:at(-9,16),milestone:'delivered',note:'Delivered to plant stores. POD uploaded.'},
+  tracking:[ev('awaiting_pickup','Booking confirmed.',-14),ev('picked_up','Picked up, 15 cartons.',-13),ev('customs_cleared','Export customs cleared at DXB.',-12),ev('in_transit','Departed DXB on EK flight.',-11),ev('arrived_destination_port','Arrived GAU, import customs cleared.',-10),ev('out_for_delivery','Out for delivery to plant.',-9),ev('delivered','Delivered to plant stores. POD uploaded.',-9)]}));
+ const N=[
+ ['logistics','Supplier submitted packing & documents','Lotus Specialty Materials submitted specs and 5 documents for PO 4500012002.','PO-4500012002',-6,false],
+ ['logistics','New RFQ quote received','Meridian Freight Partners quoted $7,500 / 4 days for PO 4500012003.','PO-4500012003',-1,false],
+ ['logistics','New RFQ quote received','Skyline Cargo Movers quoted $6,950 / 7 days for PO 4500012003.','PO-4500012003',-2,false],
+ ['logistics','Ariba PO requested','Northstar Air & Sea awarded for PO 4500012004 at $2,780.','PO-4500012004',-2,true],
+ ['logistics','Shipment in transit','PO 4500012005 departed FRA on AWB 020-84920146.','PO-4500012005',-2,false],
+ ['logistics','Shipment delivered','PO 4500012006 delivered to plant. POD uploaded.','PO-4500012006',-9,true],
+ ['logistics','PO issued to supplier','PO 4500012001 sent to Kestrel Precision Tools for packing details.','PO-4500012001',-2,true],
+ [S[4].email,'Packing details requested','Please submit packaging, LBH and documents for PO 4500012001.','PO-4500012001',-2,false],
+ [S[2].email,'You have been awarded','PO 4500012005 awarded. Please update AWB and milestones.','PO-4500012005',-8,true],
+ [S[3].email,'You have been awarded','PO 4500012004 awarded at $2,780. Ariba PO requested.','PO-4500012004',-2,false],
+ [S[0].email,'New RFQ open','PO 4500012003 — 6 pump modules ICN → GAU. Please quote.','PO-4500012003',-3,false]
+ ].map((n,i)=>({id:'N-SEED-'+(i+1),to:n[0]==='logistics'?'logistics':low(n[0]),title:n[1],body:n[2],poId:n[3],at:at(n[4]),read:n[5]}));
+ S.push(
+ {id:'V100512',type:'supplier',vendorCode:'V100512',companyName:'Vantage Thermal Systems',contactName:'Daniel Tan',email:'export@vantage-thermal.example',purchaseGroup:'Equipment',city:'Singapore'},
+ {id:'V100689',type:'supplier',vendorCode:'V100689',companyName:'Alpine Metrology',contactName:'Sabine Keller',email:'shipping@alpine-metrology.example',purchaseGroup:'Equipment',city:'Zurich, Switzerland'},
+ {id:'V100733',type:'supplier',vendorCode:'V100733',companyName:'Sakura Automation',contactName:'Kenji Mori',email:'logistics@sakura-automation.example',purchaseGroup:'Equipment',city:'Osaka, Japan'});
+ const EQ=[
+ ['4500012301','V100231','Dicing saw spindle assembly','Frankfurt (FRA)','EQ-DS-4410',2,'boxes',2,1,[130,90,85],196,240,'Spindle locked with transit bracket.',[]],
+ ['4500012302','V100457','Plasma cleaner RF generator','Seoul (ICN)','EQ-PC-2203',1,'boxes',1,1,[110,80,95],155,182,'',[]],
+ ['4500012303','V100512','Reflow oven conveyor chain set','Singapore (SIN)','EQ-RF-0815',4,'cartons',4,0,[80,60,45],210,236,'Chains oiled and wrapped in VCI film.',['Certificate of Origin']],
+ ['4500012304','V100689','AOI camera module','Zurich (ZRH)','EQ-AOI-1102',3,'boxes',3,1,[70,60,55],48,72,'Fragile optics – do not stack.',[]],
+ ['4500012305','V100733','Die attach dispenser head','Osaka (KIX)','EQ-DA-0507',6,'cartons',3,0,[60,50,40],54,66,'',['Insurance Certificate']],
+ ['4500012306','V100231','Wire bonder transducer kit','Frankfurt (FRA)','EQ-WB-2207',8,'boxes',2,2,[90,70,60],88,112,'Shock watch labels fitted.',[]],
+ ['4500012307','V100512','Process chiller unit','Singapore (SIN)','EQ-CH-3300',1,'boxes',1,1,[150,110,170],610,705,'Forklift from long side only.',['Import & Customs Docs']],
+ ['4500012308','V100689','X-ray inspection tube','Zurich (ZRH)','EQ-XR-0901',1,'boxes',1,1,[120,70,70],95,128,'Keep upright. Lead-lined crate.',[]],
+ ['4500012309','V100733','Test handler change kit','Osaka (KIX)','EQ-TH-1450',5,'cartons',5,0,[70,55,50],120,141,'',[]],
+ ['4500012310','V100457','Turbo molecular pump','Seoul (ICN)','EQ-VAC-1220',2,'boxes',2,1,[80,80,90],170,214,'Sealed under nitrogen.',['Certificate of Origin','Insurance Certificate']],
+ ['4500012311','V100231','Mold press heater cartridge set','Frankfurt (FRA)','EQ-MP-0330',40,'cartons',2,0,[60,40,35],36,44,'',[]],
+ ['4500012312','V100512','Laser marker galvo head','Singapore (SIN)','EQ-LM-0612',2,'boxes',2,1,[75,60,55],42,60,'Anti-static packing.',[]]];
+ EQ.forEach((r,i)=>{const [n,vid,desc,origin,mat,qty,mode,units,cr,u,net,gross,rem,miss]=r;const sp=sup(vid);
+  const k=pk(mode,qty,units,cr,[u[0]*Math.min(units,2),u[1],u[2]*(units>2?2:1)],u,net,gross,+(net/qty).toFixed(2),day(2+i%6),rem);k.submittedAt=at(-(i%5)-1,9+i%8);
+  const docs=REQ.filter(t=>!miss.includes(t)).map(t=>{const d=doc(n,t,sp.companyName,'supplier',k);d.at=k.submittedAt;return d});
+  P.push(mk(base(n,'Equipment',vid,desc,origin,['FCA','EXW','FCA','CPT'][i%4],day(20+i),[{line:10,material:mat,desc,qty,unit:'EA'}]),{status:'docs_submitted',packing:k,invitedForwarderEmails:[],documents:docs,createdAt:at(-8-i%4),updatedAt:k.submittedAt}));
+  N.push({id:'N-SEED-EQ-'+n,to:'logistics',title:'Supplier submitted packing & documents',body:`${sp.companyName} submitted specs (${units} ${mode}, ${gross} kg) and ${docs.length} document(s) for PO ${n}.`,poId:'PO-'+n,at:k.submittedAt,read:false})});
+ const SENT=[
+ ['4500012321','V100689','Wafer prober card set','Zurich (ZRH)','EQ-PR-0711',4,'boxes',2,2,[80,60,40],60,82,'Cards in ESD trays.',[[ 'FF003',6.1,5],['FF001',5.4,7],['FF008',5.7,4]]],
+ ['4500012322','V100733','Burn-in board set','Osaka (KIX)','EQ-BI-2040',24,'cartons',6,0,[70,55,30],180,214,'',[[ 'FF004',4.8,4],['FF002',4.5,6],['FF001',5.0,5],['FF009',4.6,5]]],
+ ['4500012323','V100512','Nitrogen generator module','Singapore (SIN)','EQ-N2-0502',1,'boxes',1,1,[140,100,160],520,598,'Top-heavy – strap to pallet.',[['FF006',3.9,5],['FF010',4.2,4]]],
+ ['4500012324','V100457','Ion implanter source head','Seoul (ICN)','EQ-II-0901',2,'boxes',2,1,[90,70,80],140,176,'Hazmat-free, sealed.',[['FF001',6.8,5],['FF005',6.2,6]]],
+ ['4500012325','V100231','Flip-chip bonder nozzle kit','Frankfurt (FRA)','EQ-FC-0102',10,'cartons',2,0,[50,40,30],22,30,'',[['FF003',9.5,4],['FF004',8.9,6],['FF007',9.9,5]]]];
+ SENT.forEach((r,i)=>{const [n,vid,desc,origin,mat,qty,mode,units,cr,u,net,gross,rem,qs]=r;const sp=sup(vid);
+  const k=pk(mode,qty,units,cr,[u[0]*Math.min(units,2),u[1],u[2]],u,net,gross,+(net/qty).toFixed(2),day(1+i),rem);k.submittedAt=at(-6-i,10+i);
+  const ch=Math.max(Math.round(k.cbm*167),gross);
+  P.push(mk(base(n,'Equipment',vid,desc,origin,'FCA',day(18+i),[{line:10,material:mat,desc,qty,unit:'EA'}]),{status:'rfq_open',packing:k,invitedForwarderEmails:S.filter(x=>x.type==='ff').map(x=>x.email),documents:REQ.map(t=>{const d=doc(n,t,sp.companyName,'supplier',k);d.at=k.submittedAt;return d}),
+   quotes:qs.map(([ff,rate,t],j)=>{const b=Math.round(ch*rate/10)*10,sc=Math.round(b*0.14/10)*10;return qt(n,ff,b,sc,t,(S.find(x=>x.id===ff).portOrCity.includes('ZRH')?'Swiss WorldCargo':['Lufthansa Cargo','Emirates SkyCargo','Cathay Cargo','Qatar Airways Cargo','Singapore Airlines Cargo'][(i+j)%5]),`${origin.match(/\((\w+)\)/)[1]} → DEL → GAU`,'submitted',-3+j)}),
+   createdAt:at(-10-i),updatedAt:at(-2-i)}))});
+ P.forEach(x=>{if(x.poNumber==='4500012322'){const q=[...x.quotes].sort((a,b)=>a.totalUsd-b.totalUsd)[0];x.nfa={quoteId:q.id,selectedAt:at(-1,15),justification:`L1 – lowest landed freight cost among ${x.quotes.length} quotes.`,status:'ready'}}
+  if(x.poNumber==='4500012325'){const q=[...x.quotes].sort((a,b)=>a.transitDays-b.transitDays)[0];x.nfa={quoteId:q.id,selectedAt:at(-2,12),justification:`Fastest transit (${q.transitDays} days) to meet the line-down risk on flip-chip bonder.`,status:'approved',approvedAt:at(-1,10)}}});
+ const allFF10=S.filter(x=>x.type==='ff').map(x=>x.email);
+ P.find(x=>x.poNumber==='4500012003').invitedForwarderEmails=allFF10;
+ const SHIPS=[
+ ['4500012341','V100231','Wire bonder heater block','Frankfurt (FRA)','EQ-WB-2210',4,'boxes',1,1,[60,50,40],22,31,'FF001','delivered','020','8493112','Lufthansa Cargo'],
+ ['4500012342','V100457','Turbo pump controller','Seoul (ICN)','EQ-VAC-1225',2,'boxes',1,1,[70,60,50],38,49,'FF005','in_transit','180','5531207','Korean Air Cargo'],
+ ['4500012343','V100512','Reflow oven heater zone','Singapore (SIN)','EQ-RF-0820',2,'boxes',2,1,[110,70,60],120,150,'FF006','ff_awarded','618','7702415','Singapore Airlines Cargo'],
+ ['4500012344','V200118','ULPA filter cartridges','Dubai (DXB)','MT-FLT-0470',120,'cartons',6,0,[60,60,40],96,118,'FF007','in_transit','176','5044182','Emirates SkyCargo'],
+ ['4500012345','V100689','Metrology stage encoder','Zurich (ZRH)','EQ-EL-0122',1,'boxes',1,1,[80,60,50],18,29,'FF008','delivered','724','3318904','Swiss WorldCargo'],
+ ['4500012346','V100733','Handler kit change parts','Osaka (KIX)','EQ-TH-1462',8,'cartons',2,0,[60,40,40],34,42,'FF009','ff_awarded','205','6620031','ANA Cargo'],
+ ['4500012347','V200342','Tray dividers & lids','Hong Kong (HKG)','MT-PKG-2120',3000,'cartons',12,0,[60,40,40],260,300,'FF010','in_transit','157','4410267','Qatar Airways Cargo']];
+ [['FF001','in_transit','V100457','Seoul (ICN)','180','Korean Air Cargo','Vacuum gauge set','EQ-VAC-0930'],['FF002','ff_awarded','V200118','Dubai (DXB)','176','Emirates SkyCargo','Cleanroom garments (cases)','MT-CON-0702'],
+  ['FF003','delivered','V100231','Frankfurt (FRA)','020','Lufthansa Cargo','Saw blade hub set','EQ-DS-4431'],['FF004','delivered','V200342','Hong Kong (HKG)','160','Cathay Cargo','Reel boxes 13 in','MT-PKG-1330'],
+  ['FF005','delivered','V100733','Osaka (KIX)','131','JAL Cargo','Pick-up tool set','EQ-PP-0340'],['FF006','delivered','V100512','Singapore (SIN)','618','Singapore Airlines Cargo','FFU filter frames','EQ-FFU-230'],
+  ['FF007','delivered','V100689','Zurich (ZRH)','724','Swiss WorldCargo','Reference wafer kit','EQ-EL-0130'],['FF008','in_transit','V100689','Zurich (ZRH)','724','Swiss WorldCargo','Probe tip cleaning kit','EQ-PR-0720'],
+  ['FF009','delivered','V100733','Osaka (KIX)','205','ANA Cargo','Burn-in socket lids','EQ-BI-2061'],['FF010','delivered','V200118','Dubai (DXB)','157','Qatar Airways Cargo','Pre-filter pads','MT-FLT-0480']]
+ .forEach(([ff,st,vid,origin,pre,car,desc,mat],i)=>{const carton=mat.startsWith('MT');SHIPS.push([String(4500012351+i),vid,desc,origin,mat,carton?40+i*10:2+i%3,carton?'cartons':'boxes',carton?4+i%3:1+i%2,carton?0:1,carton?[60,40,40]:[70,55,50],carton?60+i*5:25+i*4,carton?75+i*5:34+i*4,ff,st,pre,String(6100003+i*7919),car])});
+ const MS=['awaiting_pickup','picked_up','customs_cleared','in_transit','arrived_destination_port','out_for_delivery','delivered'];
+ SHIPS.forEach((r,i)=>{const [n,vid,desc,origin,mat,qty,mode,units,cr,u,net,gross,ffId,st,pre,ser,car]=r;const sp=sup(vid),f=S.find(x=>x.id===ffId);
+  const upto=st==='delivered'?7:st==='in_transit'?4:1,off=st==='delivered'?-9:st==='in_transit'?-3:-1,O=off-(st==='delivered'?(i%6)*4:0);
+  const SD=SHIPTO[i%4===1?1:i%5===2?2:0];const awb=`${pre}-${ser}${Number(ser)%7}`,code=origin.match(/\((\w+)\)/)[1],route=`${code} → DEL → ${SD[1].match(/\((\w+)\)/)[1]}`;
+  const k=pk(mode,qty,units,cr,[u[0]*Math.min(units,2),u[1],u[2]],u,net,gross,+(net/qty).toFixed(2),day(O-upto+1),'');
+  const ch=Math.max(Math.round(k.cbm*167),gross),rate=[5.2,6.1,4.4,4.8,7.9,5.5,3.9][i%7],b=Math.round(ch*rate/10)*10,sc=Math.round(b*0.12/10)*10;
+  const other=S.filter(x=>x.type==='ff'&&x.id!==ffId)[i%9];const ob=Math.round(b*1.08/10)*10;
+  const tr=MS.slice(0,upto).map((m,j)=>({id:`T-${n}-${j}`,milestone:m,note:{awaiting_pickup:`Booking confirmed with ${car}.`,picked_up:`Picked up from ${sp.companyName}.`,customs_cleared:`Export customs cleared at ${code}.`,in_transit:`Departed ${code}, connecting at DEL.`,arrived_destination_port:'Arrived GAU, import customs cleared.',out_for_delivery:'Out for delivery to plant.',delivered:'Delivered to plant stores. POD uploaded.'}[m],at:at(O-upto+j+1,9+j),by:f.companyName}));
+  const docs=[...REQ.map(t=>doc(n,t,sp.companyName,'supplier',k)),doc(n,'AWB Receipt',f.companyName,'ff',awb)];if(st==='delivered')docs.push(doc(n,'Proof of Delivery',f.companyName,'ff',''));
+  P.push(mk(base(n,mode==='cartons'&&mat.startsWith('MT')?'Material':'Equipment',vid,desc,origin,'FCA',day(st==='delivered'?-6:6+i),[{line:10,material:mat,desc,qty,unit:'EA'}]),{status:st,packing:k,invitedForwarderEmails:[f.email,other.email],awardedForwarderEmail:f.email,awardedForwarderCompany:f.companyName,aribaPoRef:`ARIBA-PO-${day(-10-i).replace(/-/g,'')}-${2000+i*137}`,aribaSyncStatus:'requested',documents:docs,
+   quotes:[qt(n,ffId,b,sc,4+i%3,car,route,'awarded',O-upto-1-(i%2)),qt(n,other.id,ob,sc,5+i%3,car,route,'not_selected',O-upto-2)],
+   shipment:{awb,carrier:car,pickupTime:at(O-upto+2,10),pickupLocation:`${sp.companyName} warehouse`,originPort:origin,destinationPort:SD[1],etd:at(O-upto+3,22),eta:st==='delivered'?at(O+(i===4||i===12?-1:1),15):at(2+i%3,15),actualDelivery:st==='delivered'?at(O,16):'',milestone:MS[upto-1],note:tr[tr.length-1].note},tracking:tr,createdAt:at(O-upto-8-i%3),updatedAt:at(O),plant:SD[0],destinationPort:SD[1]}));k.submittedAt=at(O-upto-6);
+  N.push({id:'N-SEED-S-'+n,to:low(f.email),title:st==='ff_awarded'?'You have been awarded':'Shipment update logged',body:`PO ${n} · AWB ${awb}: ${MILE[MS[upto-1]]}.`,poId:'PO-'+n,at:at(off),read:st==='delivered'});
+  N.push({id:'N-SEED-L-'+n,to:'logistics',title:st==='delivered'?'Shipment delivered':'Shipment update',body:`PO ${n} · ${f.companyName} · AWB ${awb}: ${MILE[MS[upto-1]]}.`,poId:'PO-'+n,at:at(off),read:true});
+  N.push({id:'N-SEED-P-'+n,to:low(sp.email),title:st==='delivered'?'Shipment delivered':'Shipment update',body:`PO ${n} · AWB ${awb}: ${MILE[MS[upto-1]]}.`,poId:'PO-'+n,at:at(off),read:false})});
+ S.filter(x=>x.type==='ff').forEach((f,i)=>N.push({id:'N-SEED-R-'+f.id,to:low(f.email),title:'New RFQ open',body:`PO ${['4500012321','4500012322','4500012323','4500012324','4500012325'][i%5]} is open for quotes. Please quote by ${fdate(day(3))}.`,poId:'PO-'+['4500012321','4500012322','4500012323','4500012324','4500012325'][i%5],at:at(-3,9+i),read:false}));
+ S.push(
+ {id:'V300110',type:'supplier',vendorCode:'V300110',companyName:'Formosa Semicon Parts',contactName:'Chen Wei-Ling',email:'export@formosa-parts.example',purchaseGroup:'Equipment',city:'Taipei, Taiwan'},
+ {id:'V300120',type:'supplier',vendorCode:'V300120',companyName:'Dutch Precision Motion',contactName:'Pieter de Vries',email:'logistics@dutch-motion.example',purchaseGroup:'Equipment',city:'Eindhoven, Netherlands'},
+ {id:'V300130',type:'supplier',vendorCode:'V300130',companyName:'Thames Analytical',contactName:'Emma Clarke',email:'shipping@thames-analytical.example',purchaseGroup:'Equipment',city:'Cambridge, United Kingdom'},
+ {id:'V300140',type:'supplier',vendorCode:'V300140',companyName:'Great Lakes Vacuum',contactName:'Mike Johnson',email:'exports@greatlakes-vac.example',purchaseGroup:'Equipment',city:'Chicago, United States'},
+ {id:'V300150',type:'supplier',vendorCode:'V300150',companyName:'Maple Cleanroom Supply',contactName:'Sarah Tremblay',email:'orders@maple-cleanroom.example',purchaseGroup:'Material',city:'Toronto, Canada'});
+ const NPORT={V300110:'Taipei (TPE)',V300120:'Amsterdam (AMS)',V300130:'London (LHR)',V300140:'Chicago (ORD)',V300150:'Toronto (YYZ)'};
+ const NCARR={V300110:['297','China Airlines Cargo'],V300120:['074','KLM Cargo'],V300130:['125','British Airways World Cargo'],V300140:['016','United Cargo'],V300150:['014','Air Canada Cargo']};
+ const RMAP={'4500012302':'V300110','4500012306':'V300120','4500012309':'V300140','4500012311':'V300130','4500012312':'V300150','4500012323':'V300140','4500012324':'V300110',
+  '4500012341':'V300130','4500012344':'V300120','4500012351':'V300140','4500012353':'V300140','4500012354':'V300150','4500012356':'V300110','4500012357':'V300120','4500012358':'V300150','4500012360':'V300130',
+  '4500012332':'V300150','4500012333':'V300120','4500012111':'V300140','4500012114':'V300110','4500012117':'V300130','4500012118':'V300120'};
+ const remap=(x,vid)=>{if(x._rm)return;x._rm=1;const sp=S.find(v=>v.id===vid),port=NPORT[vid],code=port.match(/\((\w+)\)/)[1],oldMail=low(x.supplierEmail),na=vid==='V300140'||vid==='V300150';
+  Object.assign(x,{supplierName:sp.companyName,supplierEmail:sp.email,vendorCode:vid,originPort:port});
+  if(x.packing){x.packing.originPort=port;x.packing.coo=cooOf(port)}
+  (x.quotes||[]).forEach(q=>{q.route=`${code} → `+q.route.split(' → ').slice(1).join(' → ');q.carrier=NCARR[vid][1];if(na){q.baseUsd=Math.round(q.baseUsd*1.35/10)*10;q.surchargeUsd=Math.round(q.surchargeUsd*1.35/10)*10;q.totalUsd=q.baseUsd+q.surchargeUsd;q.transitDays+=2}});
+  if(x.shipment){const ser=x.shipment.awb.replace(/\D/g,'').slice(3,10);x.shipment.awb=`${NCARR[vid][0]}-${ser}${Number(ser)%7}`;x.shipment.carrier=NCARR[vid][1];x.shipment.originPort=port;x.shipment.pickupLocation=`${sp.companyName} warehouse`;
+   (x.documents||[]).forEach(d=>{if(d.type==='AWB Receipt'){d.name=d.name;}});(x.tracking||[]).forEach(t=>{t.note=t.note.replace(/at [A-Z]{3}\./,`at ${code}.`).replace(/Departed [A-Z]{3}/,`Departed ${code}`).replace(/Booking confirmed with [^.]+\./,`Booking confirmed with ${NCARR[vid][1]}.`)})}
+  N.forEach(n=>{if(n.poId==='PO-'+x.poNumber&&n.to===oldMail)n.to=low(sp.email);if(n.poId==='PO-'+x.poNumber&&x.shipment)n.body=n.body.replace(/AWB \d{3}-\d{8}/,`AWB ${x.shipment.awb}`)})};
+ P.forEach(x=>{if(RMAP[x.poNumber])remap(x,RMAP[x.poNumber])});C.forEach(x=>{if(RMAP[x.poNumber])remap(x,RMAP[x.poNumber])});
+ P.forEach(x=>{if(x.packing){x.packing.coo=x.packing.coo||cooOf(x.originPort);x.packing.originPort=x.packing.originPort||x.originPort;x.packing.destPort=x.packing.destPort||x.destinationPort}});
+ N.push({id:'N-SEED-O-310',to:low(sup('V100457').email),title:'Missing documents – PO 4500012310',body:'Please upload: Insurance Certificate, Certificate of Origin in the Supplier Portal.',poId:'PO-4500012310',at:at(-1,11),read:false});
+ const WAIT=[
+ ['4500012331','V100733','Pick-and-place feeder set','Osaka (KIX)','EQ-PP-0318',12,'Equipment',1],
+ ['4500012332','V100512','Cleanroom FFU motor set','Singapore (SIN)','EQ-FFU-220',8,'Equipment',3],
+ ['4500012333','V100689','Ellipsometer calibration kit','Zurich (ZRH)','EQ-EL-0105',1,'Equipment',5],
+ ['4500012334','V200342','Anti-static bubble wrap rolls','Hong Kong (HKG)','MT-PKG-5120',60,'Material',2],
+ ['4500012335','V200118','IPA-resistant gloves (cases)','Dubai (DXB)','MT-CON-0880',150,'Material',6]];
+ WAIT.forEach(([n,vid,desc,origin,mat,qty,g,ago],wi)=>{const sp=sup(vid);const dd=SHIPTO[wi===1?2:wi===3?1:0];
+  P.push(mk(base(n,g,vid,desc,origin,'FCA',day(25+ago),[{line:10,material:mat,desc,qty,unit:'EA'}]),{plant:dd[0],destinationPort:dd[1],status:'po_issued',invitedForwarderEmails:allFF,createdAt:at(-ago,11),updatedAt:at(-ago,11)}));
+  N.push({id:'N-SEED-W-'+n,to:low(sp.email),title:'Packing details requested',body:`Please submit packaging, LBH and documents for PO ${n}.`,poId:'PO-'+n,at:at(-ago,11),read:false})});
+ P.forEach(x=>{if(RMAP[x.poNumber])remap(x,RMAP[x.poNumber])});
+ const DROP={'4500012304':'Insurance Certificate','4500012302':'Insurance Certificate','4500012311':'Certificate of Origin','4500012309':'Import & Customs Docs'};
+ P.forEach(x=>{if(DROP[x.poNumber]&&x.status==='docs_submitted')x.documents=x.documents.filter(d=>d.type!==DROP[x.poNumber]);if(x.packing){x.packing.coo=x.packing.coo||cooOf(x.originPort);x.packing.originPort=x.packing.originPort||x.originPort;x.packing.destPort=x.packing.destPort||x.destinationPort}delete x._rm});
+ const setDest=x=>{const d=SHIPTO[Number(x.poNumber.slice(-2))%3],code=d[1].match(/\((\w+)\)/)[1];x.plant=d[0];x.destinationPort=d[1];
+  if(x.packing)x.packing.destPort=d[1];
+  (x.quotes||[]).forEach(q=>{const o=q.route.split(' → ')[0];q.route=code==='GAU'?`${o} → DEL → GAU`:`${o} → ${code}`});
+  if(x.shipment){x.shipment.destinationPort=d[1]}(x.tracking||[]).forEach(t=>{t.note=t.note.replace(/Arrived [A-Z]{3}/,`Arrived ${code}`).replace(', connecting at DEL',code==='GAU'?', connecting at DEL':'')})};
+ P.forEach(setDest);C.forEach(setDest);
+ N.push({id:'N-SEED-K-005',to:low(sup('V100231').email),title:'Shipment update',body:'PO 4500012005 · AWB 020-84920146: In transit — departed FRA, connecting at DEL.',poId:'PO-4500012005',at:at(-2,10),read:false});
+ return{stakeholders:S,catalog:C,pos:P,notifications:N};
+}
+function seed(quiet){
+ const s=sampleData();let added=0,skipped=0;const per={};
+ for(const k of ['stakeholders','catalog','pos','notifications']){per[k]=0;
+  for(const item of s[k]){if(db[k].some(x=>x.id===item.id)){skipped++;continue}
+   if(k==='stakeholders'&&db[k].some(x=>low(x.email)===low(item.email))){skipped++;continue}
+   if(k==='pos'){const ex=db.pos.find(x=>x.poNumber===item.poNumber);if(ex){if(item.nfa&&ex.status==='rfq_open'&&!ex.nfa&&ex.quotes.some(q=>q.id===item.nfa.quoteId))ex.nfa=item.nfa;skipped++;continue}}
+   db[k].push(item);added++;per[k]++}}
+ db.notifications.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+ save();if(!quiet){ui.tab='pos'}ui.status='';ui.group='All';ui.q='';render();
+ if(!quiet)toast(added?`Sample data loaded: ${per.stakeholders} partners, ${per.catalog} SAP catalog POs, ${per.pos} purchase orders, ${per.notifications} alerts.${skipped?` ${skipped} already existed and were kept.`:''}`:'All sample records already exist — nothing to add.');
+}
+
+/* ---------- logistics views ---------- */
+const TITLES={exec:['Exec Dashboard','Freight spend, savings, cycle times and supplier / forwarder performance — live from this tool'],pos:['Purchase Orders','Fetch POs from Ariba by purchasing or material group, review them and email suppliers for shipment details'],resp:['Supplier Responses','Packing, LBH, weights and documents from suppliers · pick forwarders and send the RFQ'],rfq:['FF Quotations','Compare freight forwarder quotes side by side and request the Ariba PO'],sap:['SAP PO Sync','SAP gateway status, PO lookup, manual entry and CSV import'],ff:['FF Master','Freight forwarder directory used for RFQs'],sup:['Suppliers','Vendor directory and Partner Portal link'],alerts:['Stakeholder Alerts','Updates from suppliers, forwarders and Ariba']};
+const ptitle=(t,sub)=>`<div class="ptitle"><h2>${esc(t)}</h2><p>${esc(sub)}</p></div>`;
+function topbar(){
+ const opt=(v,l)=>`<option value="${esc(v)}" ${(ui.role+':'+ui.as===v||(v==='logistics'&&ui.role==='logistics'))?'selected':''}>${esc(l)}</option>`;
+ return `<header class="topbar"><div style="margin-right:auto"><h1>Portway Freight<span class="badge">Prototype · sample data</span></h1><div class="small">Inbound hubs: Bangalore (BLR) · Ahmedabad (AMD) · Guwahati (GAU)</div></div>
+ <label class="who">Viewing as
+ <select id="who">${opt('logistics','Logistics Center (manager)')}
+ ${sups().length?`<optgroup label="Supplier portal">${sups().map(s=>opt('supplier:'+low(s.email),s.companyName)).join('')}</optgroup>`:''}
+ ${ffs().length?`<optgroup label="Freight forwarder portal">${ffs().map(s=>opt('forwarder:'+low(s.email),s.companyName)).join('')}</optgroup>`:''}
+ </select></label>
+ ${ui.role==='logistics'?`<button class="btn ghost" data-act="reset">${ui.confirm==='reset'?'Tap again to reset':'Reset sample data'}</button>`:''}
+ </header>`}
+function rail(){
+ const cnt=s=>db.pos.filter(p=>p.status===s).length;
+ const brand=`<div class="rbrand"><svg width="40" height="40" viewBox="0 0 44 44" aria-hidden="true"><rect width="44" height="44" rx="9" fill="#2563eb"/><rect x="9" y="18" width="26" height="13" rx="2" fill="none" stroke="#fff" stroke-width="2.5"/><rect x="13" y="12" width="11" height="6" rx="1" fill="#fff"/><path d="M8 35h28" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg><div><small>Logistics</small><strong>Freight Control Tower</strong></div></div>`;
+ if(ui.role==='supplier'){const m=me();const L=m?supLists(m):{need:[],done:[],unread:0};const t=ui.stab||'need';
+  const N=[['need','Action needed',L.need.length,L.need.length>0],['done','Submitted',L.done.length,false],['alerts','Alerts',L.unread,L.unread>0]];
+  return `<aside class="rail">${brand}<nav class="side" aria-label="Supplier Portal"><h4>Supplier Portal</h4>${N.map(([k,l,n,hot])=>`<button class="${t===k?'on':''}" data-act="stab" data-id="${k}"><span>${l}</span><span class="c ${hot?'hot':''}">${n}</span></button>`).join('')}</nav><div class="railnote">${m?`Signed in as <b>${esc(m.companyName)}</b>. You only see POs sent to ${esc(m.email)}.`:'Pick your company under “Viewing as”.'}</div></aside>`}
+ if(ui.role!=='logistics'){const m=me();const L=m?ffLists(m):{toQuote:[],quoted:[],ships:[],done:[],unread:0};const t=ui.ftab||'quote';
+  const N=[['quote','RFQs to quote',L.toQuote.length,L.toQuote.length>0],['quoted','My quotes',L.quoted.length,false],['ships','Shipments',L.ships.length+L.done.length,L.ships.length>0],['alerts','Alerts',L.unread,L.unread>0]];
+  return `<aside class="rail">${brand}<nav class="side" aria-label="Forwarder Gateway"><h4>Forwarder Gateway</h4>${N.map(([k,l,n,hot])=>`<button class="${t===k?'on':''}" data-act="ftab" data-id="${k}"><span>${l}</span><span class="c ${hot?'hot':''}">${n}</span></button>`).join('')}</nav><div class="railnote">${m?`Signed in as <b>${esc(m.companyName)}</b>. You only see POs sent to ${esc(m.email)}.`:'Pick your company under “Viewing as”.'}</div></aside>`}
+ const unread=db.notifications.filter(n=>n.to==='logistics'&&!n.read).length;
+ const G=[['Procurement',[['pos','Purchase Orders',feedRows().length],['resp','Supplier Responses',db.pos.filter(isReady).length,db.pos.filter(isReady).length>0],['rfq','FF Quotations',cnt('rfq_open'),cnt('rfq_open')>0]]],
+  ['Insights',[['exec','Exec Dashboard','',false]]],
+  ['Partners',[['ff','FF Master',ffs().length],['sup','Suppliers',sups().length],['alerts','Stakeholder Alerts',unread,unread>0]]]];
+ return `<aside class="rail">${brand}<nav class="side" aria-label="Logistics Center">${G.map(([g,L])=>`<h4>${g}</h4>`+L.map(([k,l,n,hot])=>`<button class="${ui.tab===k?'on':''}" data-act="tab" data-id="${k}" ${ui.tab===k?'aria-current="page"':''}><span>${esc(l)}</span>${n===''?'':`<span class="c ${hot?'hot':''}">${n}</span>`}</button>`).join('')).join('')}</nav>
+ <div class="railnote"><b>${cnt('po_issued')}</b> awaiting supplier · <b>${cnt('rfq_open')}</b> RFQ open · <b>${cnt('in_transit')}</b> in transit</div></aside>`}
+
+function logistics(){
+ const cnt=s=>db.pos.filter(p=>p.status===s).length;
+ if(ui.tab==='sap')ui.tab='pos';const TT=TITLES[ui.tab]||TITLES.pos;
+ return `<div class="content">${ptitle(TT[0],TT[1])}
+ <main>${({pos:tabPos,exec:tabExec,resp:tabResp,rfq:tabRfq,sap:tabSap,ff:tabFF,sup:tabSup,alerts:tabAlerts}[ui.tab]||tabPos)()}</main></div>`}
+
+function emptyAll(msg){return `<div class="card empty sec"><b>${esc(msg)}</b>Use <strong>Reset sample data</strong> at the top to reload the demo set, or add POs on the Purchase Orders tab.</div>`}
+
+const PG={E10:'E10 · Equipment spares',E20:'E20 · Capital equipment',M10:'M10 · Packing material',M20:'M20 · Consumables'};
+const MG={'EQ-VAC':'Vacuum & pumps','EQ-SPR':'Bonder spares','EQ-WB':'Bonder spares','EQ-DB':'Bonder spares','EQ-FC':'Bonder spares','EQ-ROB':'Robotics & handling','EQ-TH':'Robotics & handling','EQ-PP':'Robotics & handling','EQ-DS':'Dicing & saw','EQ-PC':'Plasma & clean','EQ-FFU':'Facility & cleanroom','EQ-N2':'Facility & cleanroom','EQ-CH':'Facility & cleanroom','EQ-RF':'Thermal & reflow','EQ-MP':'Mold & press','EQ-AOI':'Inspection & metrology','EQ-XR':'Inspection & metrology','EQ-EL':'Inspection & metrology','EQ-PR':'Test & probe','EQ-BI':'Test & probe','EQ-DA':'Die attach','EQ-LM':'Laser & marking','EQ-II':'Implant','MT-PKG':'Packing material','MT-FLT':'Filters','MT-CON':'Cleanroom consumables'};
+const mat0=r=>String(r.items?.[0]?.material||'');
+const pgOf=r=>{if(r.pgCode&&PG[r.pgCode])return r.pgCode;const m=mat0(r);if(m.startsWith('MT-PKG'))return'M10';if(m.startsWith('MT-'))return'M20';if(r.purchaseGroup==='Material')return'M20';return /^EQ-(VAC|N2|CH|II|XR|FFU)/.test(m)?'E20':'E10'};
+const mgOf=r=>{if(r.mgName)return r.mgName;const m=mat0(r);const k=Object.keys(MG).filter(k=>m.startsWith(k)).sort((a,b)=>b.length-a.length)[0];return k?MG[k]:'Other'};
+const priceOf=m=>{let h=0;for(const c of String(m))h=(h*31+c.charCodeAt(0))%9973;return String(m).startsWith('MT-')?+(0.2+(h%40)/10).toFixed(2):500+(h%60)*150};
+function feedRows(){const m=new Map();
+ db.catalog.forEach(c=>m.set(c.poNumber,{...c,po:null}));
+ db.pos.forEach(p=>{const c=m.get(p.poNumber)||{};m.set(p.poNumber,{...c,...p,po:p,poDate:c.poDate||p.createdAt})});
+ return [...m.values()].map(r=>({...r,pg:pgOf(r),mg:mgOf(r),value:(r.items||[]).reduce((a,i)=>a+num(i.qty)*priceOf(i.material),0)}))}
+const SHIP={new:'Not requested',po_issued:'Details requested',docs_submitted:'Response received',rfq_open:'With forwarders',nfa:'Ready for NFA',ff_awarded:'FF awarded',in_transit:'In transit',delivered:'Delivered'};
+const shipOf=r=>r.po?(r.po.status==='rfq_open'&&r.po.nfa?'nfa':r.po.status):'new';
+const shipPill=st=>`<span class="pill sp-${st}">${SHIP[st]}</span>`;
+const destOf=r=>`${r.plant||'—'} · ${r.destinationPort||''}`;
+function poRows(){const f=ui.pf,q=low(f.q);
+ return feedRows().filter(r=>(!f.dest||r.plant===f.dest)&&(!f.pg||r.pg===f.pg)&&(!f.mg||r.mg===f.mg)&&(!f.sup||low(r.supplierEmail)===f.sup)&&(!f.st||(f.st==='later'?['ff_awarded','in_transit','delivered'].includes(shipOf(r)):shipOf(r)===f.st))
+  &&(!q||[r.poNumber,r.description,r.supplierName,...(r.items||[]).map(i=>i.material)].some(v=>low(v).includes(q))))
+  .sort((a,b)=>{const o=['new','po_issued','docs_submitted','rfq_open','nfa','ff_awarded','in_transit','delivered'];return o.indexOf(shipOf(a))-o.indexOf(shipOf(b))||String(b.poDate).localeCompare(String(a.poDate))})}
+function tabPos(){
+ const all=feedRows(),f=ui.pf,c=k=>all.filter(r=>k==='later'?['ff_awarded','in_transit','delivered'].includes(shipOf(r)):shipOf(r)===k).length;
+ const mgs=[...new Set(all.filter(r=>!f.pg||r.pg===f.pg).map(r=>r.mg))].sort();
+ const sups=[...new Map(all.map(r=>[low(r.supplierEmail),r.supplierName])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+ const CH=[['','All',all.length],['new','Not requested',c('new')],['po_issued','Details requested',c('po_issued')],['docs_submitted','Response received',c('docs_submitted')],['rfq_open','With forwarders',c('rfq_open')],['nfa','Ready for NFA',c('nfa')],['later','Awarded & shipping',c('later')]];
+ return `<form class="card fetchcard sec" data-form="pofetch">
+ <div class="row" style="justify-content:space-between"><h3>Fetch POs from Ariba</h3><span class="small">${ui.fetchedAt?`Last fetched ${fdt(ui.fetchedAt)} · `:''}Source: Ariba (sample feed)</span></div>
+ <div class="filters">
+ <label>Purchasing group<select id="pfpg"><option value="">All purchasing groups</option>${Object.entries(PG).map(([k,v])=>`<option value="${k}" ${f.pg===k?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
+ <label>Material group<select id="pfmg"><option value="">All material groups</option>${mgs.map(m=>`<option ${f.mg===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>
+ <label>Destination (ship-to)<select id="pfdest"><option value="">All destinations</option>${[...new Set(all.map(r=>r.plant).filter(Boolean))].sort().map(d=>`<option ${f.dest===d?'selected':''}>${esc(d)}</option>`).join('')}</select></label>
+ <label>Supplier<select id="pfsup"><option value="">All suppliers</option>${sups.map(([e,n])=>`<option value="${esc(e)}" ${f.sup===e?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+ <label class="grow">PO number or item<input id="pfq" value="${esc(f.q)}" placeholder="e.g. 4500012111 or nozzle"></label>
+ <button class="btn primary">Fetch POs</button><button type="button" class="btn" data-act="pfClear">Clear</button></div>
+ <div class="row small" style="border-top:1px solid var(--line);padding-top:10px">Grouping didn't find your PO?<button type="button" class="btn small" data-act="openImport">+ Add POs manually</button><span>Paste or upload a CSV / Ariba export, or type one PO — they join the list below.</span></div></form>
+ <div class="chips sec">${CH.map(([k,l,n])=>`<button class="chip ${f.st===k?'on':''}" data-act="pfSt" data-id="${k}">${l} · ${n}</button>`).join('')}</div>
+ <div id="poBar">${poBar()}</div>
+ <div id="poList" class="sec">${poTable()}</div>`}
+function poBar(){const n=ui.psel.length;return `<div class="ffbar card"><span><b>${n}</b> PO(s) selected</span><span class="small" style="flex:1">Tick POs that are not yet requested (or need a reminder) and email all their suppliers at once.</span><button class="btn primary" data-act="mailSel" ${n?'':'disabled'}>Email suppliers for shipment details (${n})…</button></div>`}
+function poTable(){
+ const R=poRows();const ok=r=>['new','po_issued'].includes(shipOf(r));ui.psel=ui.psel.filter(n=>R.some(r=>r.poNumber===n&&ok(r)));
+ if(!R.length)return `<div class="card empty"><b>No POs match</b>Change the purchasing group, material group or search.</div>`;
+ const selectable=R.filter(ok),all=selectable.length&&selectable.every(r=>ui.psel.includes(r.poNumber));
+ return `<div class="tbl scroll"><table class="rt"><thead><tr><th class="ck"><input type="checkbox" data-act="pselAll" aria-label="Select all" ${all?'checked':''}></th><th>PO</th><th>Purchasing · material group</th><th>Supplier · origin → destination</th><th>Items · delivery</th><th class="r">Value (USD)</th><th>Shipment details</th></tr></thead><tbody>
+ ${R.map(r=>{const st=shipOf(r),sel=ui.psel.includes(r.poNumber),log=r.po?.emailLog||[];const last=log[log.length-1];
+ return `<tr class="${sel?'sel':''}"><td class="ck">${ok(r)?`<input type="checkbox" data-act="psel" data-id="${esc(r.poNumber)}" aria-label="Select PO ${esc(r.poNumber)}" ${sel?'checked':''}>`:''}</td>
+ <td class="nw"><a href="#" class="polink mono" data-act="feedOpen" data-id="${esc(r.poNumber)}">${esc(r.poNumber)}</a><div class="small">${fdate(r.poDate)}</div></td>
+ <td class="pgc">${esc(PG[r.pg])}<div class="small">${esc(r.mg)}</div></td>
+ <td class="dst"><b>${esc(r.supplierName)}</b><div class="small"><span class="nw">${esc(r.originPort)} →</span> <span class="nw" style="color:var(--ink);font-weight:600">${esc(r.destinationPort)}</span></div><div class="small">Ship-to ${esc(r.plant)}</div></td>
+ <td class="eq"><b>${esc(r.description)}</b><div class="small">${(r.items||[]).map(i=>`${esc(i.material)} × ${esc(i.qty)} ${esc(i.unit)}`).join(', ')}</div><div class="small">Delivery ${fdate(r.deliveryDate)} · ${esc(r.incoterms)}</div></td>
+ <td class="r">${usd(r.value)}</td>
+ <td>${shipPill(st)}${st==='po_issued'?`<div class="small">${last?`emailed ${ageDays(last.at)}d ago`:`requested ${ageDays(r.po.createdAt)}d ago`}</div>`:''}<div style="margin-top:6px" class="nw">${st==='new'?`<button class="btn small primary" data-act="mailOne" data-id="${esc(r.poNumber)}">Request details</button>`:st==='po_issued'?`<button class="btn small" data-act="mailOne" data-id="${esc(r.poNumber)}">Resend email</button>`:st==='docs_submitted'?`<button class="btn small" data-act="goTab" data-id="resp">View response</button>`:st==='rfq_open'?`<button class="btn small" data-act="goTab" data-id="rfq">Compare quotes</button>`:st==='nfa'?`<button class="btn small" data-act="goNfa">Open NFA</button>`:`<button class="btn small" data-act="open" data-id="${esc(r.po.id)}">Track</button>`}</div></td></tr>`}).join('')}
+ </tbody></table></div><p class="small">${R.length} PO(s) · click a PO number to see full PO details.</p>`}
+function refreshPos(){const l=$('#poList');if(l)l.innerHTML=poTable();const b=$('#poBar');if(b)b.innerHTML=poBar()}
+
+function feedModal(n){
+ const r=feedRows().find(x=>x.poNumber===n);if(!r)return'';const st=shipOf(r);
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="PO details">
+ <div class="mhead"><h2>PO ${esc(r.poNumber)}</h2>${shipPill(st)}<button class="btn" data-act="close">Close</button></div>
+ <div class="mbody"><p class="small" style="margin-top:0">Fetched from Ariba (sample feed)</p>
+ <dl class="kv"><div><dt>PO date</dt><dd>${fdate(r.poDate)}</dd></div><div><dt>Purchasing group</dt><dd>${esc(PG[r.pg])}</dd></div><div><dt>Material group</dt><dd>${esc(r.mg)}</dd></div><div><dt>Supplier</dt><dd>${esc(r.supplierName)}<div class="small">${esc(r.supplierEmail)} · ${esc(r.vendorCode)}</div></dd></div><div><dt>Destination (ship-to)</dt><dd>${esc(r.plant)}<div class="small">${esc(r.destinationPort)}</div></dd></div><div><dt>Route</dt><dd>${esc(r.originPort)} → ${esc(r.destinationPort)}</dd></div><div><dt>Incoterms</dt><dd>${esc(r.incoterms)}</dd></div><div><dt>Delivery date</dt><dd>${fdate(r.deliveryDate)}</dd></div></dl>
+ <div class="tbl sec"><table><thead><tr><th>Line</th><th>Material</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody>${(r.items||[]).map(i=>`<tr><td>${esc(i.line)}</td><td class="mono">${esc(i.material)}</td><td>${esc(i.desc)}</td><td class="r">${esc(i.qty)} ${esc(i.unit)}</td><td class="r">${usd(priceOf(i.material))}</td><td class="r">${usd(num(i.qty)*priceOf(i.material))}</td></tr>`).join('')}
+ <tr><td colspan="5" class="r"><b>Total</b></td><td class="r"><b>${usd(r.value)}</b></td></tr></tbody></table></div>
+ ${(r.po?.emailLog||[]).length?`<h3 class="sec">Emails to supplier</h3><ul class="sec">${r.po.emailLog.map(e=>`<li>${fdt(e.at)} · to ${esc(e.to)} · “${esc(e.subject)}”</li>`).join('')}</ul>`:''}
+ <div class="row sec">${st==='new'?`<button class="btn primary" data-act="mailOne" data-id="${esc(r.poNumber)}">Request shipment details from supplier</button>`:st==='po_issued'?`<button class="btn primary" data-act="mailOne" data-id="${esc(r.poNumber)}">Resend email</button><button class="btn" data-act="open" data-id="${esc(r.po.id)}">Open tracker view</button>`:`<button class="btn" data-act="open" data-id="${esc(r.po.id)}">Open tracker view</button>`}</div></div></div></div>`}
+
+const MAIL_SUBJ='Shipment & packing details required – PO {po}';
+const MAIL_BODY=`Dear {contact},
+
+Please share the shipment details for PO {po} – {items} – so we can arrange freight to {destination}:
+
+1. Packaging type (boxes or cartons) and number of boxes / cartons
+2. Number of crates per box / carton
+3. Dimensions L × B × H in cm – per box / carton and master cargo
+4. Net weight and gross weight (kg), and weight per count
+5. Pickup-ready date and pickup address
+6. Country of origin, origin (loading) port and destination port
+7. Documents: Commercial Invoice, Packing List & packaging material, Insurance Certificate, Import & Customs documents, Certificate of Origin
+
+Please submit everything in the Supplier Portal: {portal}
+
+Regards,
+Logistics Center`;
+function mailFill(t,r){const st=db.stakeholders.find(s=>low(s.email)===low(r.supplierEmail));
+ return t.replace(/\{po\}/g,r.poNumber).replace(/\{supplier\}/g,r.supplierName).replace(/\{contact\}/g,st?.contactName||r.supplierName+' team').replace(/\{items\}/g,(r.items||[]).map(i=>`${i.desc||r.description} × ${i.qty} ${i.unit}`).join('; ')).replace(/\{destination\}/g,`${r.plant||'our plant'} via ${r.destinationPort||'Guwahati (GAU)'}`).replace(/\{portal\}/g,location.href.split('#')[0]+'#supplier')}
+function importModal(){const t=ui.impTab||'csv';const mgList=[...new Set(Object.values(MG))].sort();
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="Add POs" style="width:min(860px,100%)">
+ <div class="mhead"><h2>Add POs to the list</h2><button class="btn" data-act="close">Close</button></div>
+ <nav class="mtabs"><button class="${t==='csv'?'on':''}" data-act="impTab" data-id="csv">Upload or paste CSV</button><button class="${t==='one'?'on':''}" data-act="impTab" data-id="one">Add one PO</button></nav>
+ <div class="mbody">${t==='csv'?`<form data-form="csv">
+ <p class="small" style="margin-top:0">Columns: <b>poNumber, supplierName, supplierEmail</b> (required), purchaseGroup (Equipment/Material), pgCode (E10/E20/M10/M20), materialGroup, description, vendorCode, originPort, <b>plant</b> (ship-to), <b>destinationPort</b>, incoterms, deliveryDate, material, quantity, unit. Rows with the same poNumber become line items. An Ariba export saved as CSV works if you rename its headers to these.</p>
+ <label>Choose a .csv file<input type="file" id="csvFile" accept=".csv,text/csv"></label>
+ <label class="sec">…or paste CSV<textarea id="csvText" style="min-height:160px;font-size:14px" placeholder="Paste CSV here"></textarea></label>
+ <div class="row sec"><button class="btn primary">Import to list</button><button type="button" class="btn" data-act="sampleCsv">Insert sample CSV</button></div></form>`
+ :`<form data-form="catAdd" class="form">
+ <label>PO number*<input name="poNumber" required pattern="[0-9A-Za-z-]{4,20}"></label>
+ <label>Purchasing group*<select name="pgCode">${Object.entries(PG).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('')}</select></label>
+ <label>Material group*<input name="mgName" list="mgl" required placeholder="e.g. Vacuum & pumps"><datalist id="mgl">${mgList.map(m=>`<option value="${esc(m)}">`).join('')}</datalist></label>
+ <label>PO date<input name="poDate" type="date" value="${day(0)}"></label>
+ <label class="full">Description*<input name="description" required maxlength="120"></label>
+ <label>Supplier name*<input name="supplierName" required maxlength="80" list="supl"><datalist id="supl">${sups().map(x=>`<option value="${esc(x.companyName)}">`).join('')}</datalist></label>
+ <label>Supplier email*<input name="supplierEmail" type="email" required></label>
+ <label>Destination (ship-to)*<select name="shipTo">${SHIPTO.map((d,i)=>`<option value="${i}">${esc(d[0])} · ${esc(d[1])}</option>`).join('')}</select></label>
+ <label>Vendor code<input name="vendorCode" maxlength="20"></label><label>Origin port<input name="originPort" placeholder="e.g. Frankfurt (FRA)"></label>
+ <label>Incoterms<select name="incoterms">${['FCA','EXW','FOB','CPT','CIF','DAP','DDP'].map(i=>`<option>${i}</option>`).join('')}</select></label><label>Delivery date<input name="deliveryDate" type="date"></label>
+ <label>Material<input name="material"></label><label>Quantity<input name="qty" type="number" min="0" step="any"></label><label>Unit<input name="unit" value="EA"></label>
+ <div class="full row"><button class="btn primary">Add to list</button><span class="small">Picking a known supplier fills the email for you.</span></div></form>`}</div></div></div>`}
+function openMail(nums){if(!nums.length)return;if(!ui.mailT)ui.mailT={subject:MAIL_SUBJ,body:MAIL_BODY};ui.modal={kind:'mail',nums};renderModal()}
+function mailModal(){
+ const F=feedRows(),R=ui.modal.nums.map(n=>F.find(r=>r.poNumber===n)).filter(Boolean);if(!R.length)return'';const r0=R[0];
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="Email supplier" style="width:min(900px,100%)">
+ <div class="mhead"><h2>${R.length===1?`Email supplier · PO ${esc(r0.poNumber)}`:`Email ${R.length} suppliers`}</h2><button class="btn" data-act="close">Close</button></div>
+ <form class="mbody" data-form="mail">
+ <div class="pksum"><b>To:</b> ${R.map(r=>`${esc(r.supplierName)} &lt;${esc(r.supplierEmail)}&gt; <span class="small">(PO ${esc(r.poNumber)})</span>`).join('<br>')}<br><b>Cc:</b> Logistics Center</div>
+ <div class="grid2 sec"><div>
+ <label>Subject<input id="mSubj" value="${esc(ui.mailT.subject)}"></label>
+ <label class="sec">Message<textarea id="mBody" style="min-height:330px;font-size:15px">${esc(ui.mailT.body)}</textarea></label>
+ <p class="small">${R.length>1?'One email per PO. ':''}Placeholders: {po} {supplier} {contact} {items} {destination} {portal}</p></div>
+ <div><label>Preview${R.length>1?` · first of ${R.length}`:''}</label><div class="mprev" id="mPrev">${mailPrev(r0)}</div></div></div>
+ <div class="note sec small">This prototype has no mail server: sending records the email on the PO and puts the request in the supplier's portal. Use <b>Copy email</b> to paste it into Outlook.</div>
+ <div class="row sec" style="justify-content:flex-end"><button type="button" class="btn" data-act="mailCopy">Copy email</button><button type="button" class="btn" data-act="close">Cancel</button><button class="btn primary">Send ${R.length} email${R.length===1?'':'s'}</button></div>
+ </form></div></div>`}
+function mailPrev(r){return `<b>${esc(mailFill(ui.mailT.subject,r))}</b><hr>${esc(mailFill(ui.mailT.body,r))}`}
+
+function quoteTable(p,canAward){
+ const qs=[...p.quotes].sort((a,b)=>a.totalUsd-b.totalUsd);
+ if(!qs.length)return `<p class="muted">No quotes yet — ${p.invitedForwarderEmails.length} forwarder(s) invited. Quotes appear here as forwarders respond.</p>`;
+ const {lo,fa}=quoteFlags(qs),k=p.packing,ch=k?Math.max(Math.round(k.cbm*167),Math.round(num(k.grossKg))):0,hi=Math.max(...qs.map(q=>q.totalUsd));
+ return `<div class="tbl scroll"><table class="rt qt"><thead><tr><th>Forwarder</th><th class="r">Total (USD)</th><th class="r">Per kg chg.</th><th class="r">Transit</th><th>Carrier · route</th><th>Valid until</th><th></th></tr></thead><tbody>
+ ${qs.map(q=>`<tr class="${q.status==='awarded'?'won':''} ${q.status==='not_selected'?'lost':''}"><td class="fw"><b>${esc(q.ffCompany)}</b><div>${q.totalUsd===lo?'<span class="tag low">Lowest rate</span>':''}${q.transitDays===fa?'<span class="tag fast">Fastest</span>':''}${q.status==='awarded'?'<span class="tag won">Awarded</span>':''}${q.status==='not_selected'?'<span class="tag lost">Not selected</span>':''}</div></td>
+ <td class="r"><b class="big">${usd(q.totalUsd)}</b>${q.totalUsd>lo?`<div class="small">+${usd(q.totalUsd-lo)} vs lowest</div>`:''}<div class="small nw">${usd(q.baseUsd)} base + ${usd(q.surchargeUsd)}</div><div class="qbar"><i style="width:${Math.round(q.totalUsd/hi*100)}%"></i></div></td>
+ <td class="r nw">${ch?'$'+(q.totalUsd/ch).toFixed(2):'—'}</td><td class="r nw"><b>${esc(q.transitDays)} days</b></td>
+ <td class="cr" title="${esc(q.remarks||'')}">${esc(q.carrier)}<div class="small nw">${esc(q.route)}</div></td><td class="nw">${fdate(q.validUntil)}</td>
+ <td>${canAward?`<button class="btn small primary nw" data-act="nfaPick" data-id="${esc(p.id)}" data-q="${esc(q.id)}">Select → Ready for NFA</button>`:''}</td></tr>`).join('')}
+ </tbody></table></div>`}
+
+function quoteCards(p,canAward){
+ const {lo,fa}=quoteFlags(p.quotes);
+ if(!p.quotes.length)return `<p class="muted">No quotes yet — ${p.invitedForwarderEmails.length} forwarder(s) invited.</p>`;
+ return `<div class="qcards">${[...p.quotes].sort((a,b)=>a.totalUsd-b.totalUsd).map(q=>`<div class="q ${q.totalUsd===lo?'best':q.transitDays===fa?'fast':''}">
+ <div>${q.totalUsd===lo?'<span class="tag low">Lowest rate</span>':''}${q.transitDays===fa?'<span class="tag fast">Fastest transit</span>':''}${q.status==='awarded'?'<span class="tag won">Awarded</span>':''}${q.status==='not_selected'?'<span class="tag lost">Not selected</span>':''}</div>
+ <h3>${esc(q.ffCompany)}</h3><div class="tot">${usd(q.totalUsd)}</div>
+ <div class="small">Base ${usd(q.baseUsd)} + surcharges ${usd(q.surchargeUsd)}</div>
+ <p style="margin:8px 0"><b>${esc(q.transitDays)} days</b> · ${esc(q.carrier)}<br><span class="small">${esc(q.route)} · valid until ${fdate(q.validUntil)}</span></p>
+ ${q.remarks?`<p class="small" style="margin:0 0 8px">${esc(q.remarks)}</p>`:''}
+ ${canAward?`<button class="btn primary" data-act="award" data-id="${esc(p.id)}" data-q="${esc(q.id)}">Ask for PO (Ariba)</button>`:''}</div>`).join('')}</div>`}
+
+const DOCSHORT={'Commercial Invoice':'Invoice','Packing List & Packaging Material':'Packing list','Insurance Certificate':'Insurance','Import & Customs Docs':'Customs docs','Certificate of Origin':'Origin cert'};
+const ageDays=v=>Math.max(0,Math.floor((Date.now()-new Date(v))/864e5));
+const missingDocs=p=>REQ.filter(t=>!p.documents.some(d=>d.type===t));
+const isReady=p=>p.status==='docs_submitted'&&!!p.packing&&(!missingDocs(p).length||p.rfqReady);
+function respBase(st){return db.pos.filter(p=>st==='wait'?p.status==='po_issued':st==='sent'?p.packing&&p.status==='rfq_open':st==='ready'?isReady(p):p.status==='docs_submitted'&&p.packing&&!isReady(p))}
+function respRows(){
+ const f=ui.rf,q=low(f.q);
+ return respBase(f.st).filter(p=>(!f.sup||low(p.supplierEmail)===f.sup)&&(f.grp==='All'||p.purchaseGroup===f.grp)
+   &&(f.st==='wait'||!f.docs||(f.docs==='missing')===REQ.some(t=>!p.documents.some(d=>d.type===t)))
+   &&(!q||[p.poNumber,p.description,p.supplierName,...p.items.map(i=>i.material)].some(v=>low(v).includes(q))))
+  .sort((a,b)=>f.st==='wait'?String(a.createdAt).localeCompare(String(b.createdAt)):String(b.packing.submittedAt).localeCompare(String(a.packing.submittedAt)))}
+function respTable(){
+ const R=respRows(),st=ui.rf.st;ui.rsel=ui.rsel.filter(id=>R.some(p=>p.id===id));
+ if(!R.length)return `<div class="card empty"><b>Nothing here</b>No POs match these filters.</div>`;
+ if(st==='wait')return `<div class="tbl"><table class="rt stack"><thead><tr><th>PO</th><th>Equipment / material</th><th>Supplier</th><th class="r">Qty</th><th>Issued</th><th class="r">Waiting</th><th></th></tr></thead><tbody>
+ ${R.map(p=>{const d=ageDays(p.createdAt);return `<tr><td><a href="#" class="polink mono" data-act="open" data-id="${esc(p.id)}">${esc(p.poNumber)}</a></td><td>${esc(p.description)}<div class="small">${esc(p.purchaseGroup)} · ${esc(p.items.map(i=>i.material).join(', '))}</div></td><td>${esc(p.supplierName)}<div class="small">${esc(p.supplierEmail)}</div></td><td class="r">${esc(p.items.reduce((a,i)=>a+num(i.qty),0))}</td><td class="nw">${fdate(p.createdAt)}</td><td class="r"><span class="age ${d>=5?'late':d>=3?'risk':''}">${d} day${d===1?'':'s'}</span></td><td><button class="btn small" data-act="remind" data-id="${esc(p.id)}">Remind</button></td></tr>`}).join('')}</tbody></table></div><p class="small">${R.length} PO(s) waiting on the supplier · amber at 3 days, red at 5.</p>`;
+ const all=R.every(p=>ui.rsel.includes(p.id));
+ return `<div class="tbl scroll"><table class="rt"><thead><tr><th class="ck"><input type="checkbox" data-act="rselAll" aria-label="Select all" ${all?'checked':''}></th><th>PO / equipment</th><th>Supplier</th><th>Packing · LBH (cm)</th><th class="r">Weight · volume</th><th>Documents</th><th>RFQ</th></tr></thead><tbody>
+ ${R.map(p=>{const k=p.packing,ch=Math.max(Math.round(k.cbm*167),Math.round(num(k.grossKg))),sel=ui.rsel.includes(p.id);
+ const extra=p.documents.filter((d,i,arr)=>!REQ.includes(d.type)||arr.findIndex(x=>x.type===d.type)!==i);
+ const qs=p.quotes;const lo=qs.length?Math.min(...qs.map(q=>q.totalUsd)):0;
+ return `<tr class="${sel?'sel':''}"><td class="ck"><input type="checkbox" data-act="rsel" data-id="${esc(p.id)}" aria-label="Select PO ${esc(p.poNumber)}" ${sel?'checked':''}></td>
+ <td class="eq"><a href="#" class="polink mono" data-act="open" data-id="${esc(p.id)}">${esc(p.poNumber)}</a> <span class="small">${esc(p.purchaseGroup)}</span><div class="desc">${esc(p.description)}</div><div class="small">${esc(p.items.map(i=>i.material).join(', '))} · qty ${esc(k.qtyAsPerPo)}</div></td>
+ <td class="sp">${esc(p.supplierName)}<div class="small nw">${esc(k.originPort||p.originPort)} → ${esc(k.destPort||p.destinationPort)}</div><div class="small">Origin: ${esc(k.coo||'—')} · replied ${ageDays(k.submittedAt)}d ago</div><div class="small nw">Pickup <b style="color:var(--ink)">${fdate(k.pickupReadyDate)}</b> · ${esc(p.incoterms)}</div></td>
+ <td class="nw"><b>${esc(k.units)} ${num(k.units)===1?k.mode.slice(0,-1).replace(/boxe$/,'box'):esc(k.mode)}</b>${num(k.totalCrates)?` · ${esc(k.totalCrates)} crate${num(k.totalCrates)===1?'':'s'}`:''}<div>${esc(k.uL)} × ${esc(k.uW)} × ${esc(k.uH)}</div><div class="small">Master ${esc(k.mL)} × ${esc(k.mW)} × ${esc(k.mH)}</div></td>
+ <td class="r nw"><b>${esc(k.grossKg)} kg</b> <span class="small">/ ${esc(k.netKg)} net</span><div>${esc(k.cbm)} CBM</div><div class="small">${ch} kg chargeable</div></td>
+ <td class="docs">${REQ.map(t=>{const d=p.documents.find(x=>x.type===t);return d?`<a href="#" data-act="preview" data-id="${esc(p.id)}" data-d="${esc(d.id)}">${DOCSHORT[t]}</a>`:`<span class="dmiss">${DOCSHORT[t]} missing</span>`}).join('')}${extra.map(d=>`<a href="#" data-act="preview" data-id="${esc(p.id)}" data-d="${esc(d.id)}">${esc(d.name.length>18?d.name.slice(0,16)+'…':d.name)}</a>`).join('')}</td>
+ <td class="act">${p.status==='rfq_open'?`<div class="nw"><b>${p.invitedForwarderEmails.length}</b> FF invited</div><div class="small nw">${qs.length} quote(s)${qs.length?` · best ${usd(lo)}`:''}</div><button class="btn small" data-act="rfqOne" data-id="${esc(p.id)}">Add FF</button>`:isReady(p)?`<button class="btn small primary" data-act="rfqOne" data-id="${esc(p.id)}">Send RFQ</button>${p.rfqReady&&missingDocs(p).length?`<div class="small">Marked ready · ${missingDocs(p).length} doc(s) pending</div>`:''}`:`<button class="btn small primary nw" data-act="reqDocs" data-id="${esc(p.id)}">Ask for docs</button><div class="small" style="margin:4px 0">${p.docChase?`asked ${ageDays(p.docChase)}d ago`:''}</div><button class="btn small nw" data-act="markReady" data-id="${esc(p.id)}">Mark ready</button>`}</td></tr>`}).join('')}
+ </tbody></table></div><p class="small">${R.length} PO(s) · click a PO number for full details, or a document name to open it.</p>`}
+function ffBar(){
+ const sent=ui.rf.st==='sent';
+ return `<div class="ffbar card"><span><b>${ui.rsel.length}</b> PO(s) selected</span><span class="small" style="flex:1">Tick rows to ${sent?'add forwarders to several RFQs':'send several RFQs'} at once, or use the button on each row.</span>
+ <button class="btn primary" data-act="rfqSel" ${ui.rsel.length?'':'disabled'}>${sent?'Add FF to':'Send RFQ for'} ${ui.rsel.length} selected PO(s)…</button></div>`}
+function ffStats(e){let q=0,w=0;db.pos.forEach(p=>p.quotes.forEach(x=>{if(low(x.ffEmail)===e){q++;if(x.status==='awarded')w++}}));return{q,w}}
+function pickModal(){
+ const P=ui.modal.ids.map(po).filter(Boolean);if(!P.length)return'';
+ const F=ffs(),one=P.length===1?P[0]:null;
+ const invitedAll=e=>P.every(p=>p.status==='rfq_open'&&p.invitedForwarderEmails.map(low).includes(e));
+ const gross=P.reduce((a,p)=>a+num(p.packing?.grossKg),0),cbm=P.reduce((a,p)=>a+num(p.packing?.cbm),0);
+ const ports=[...new Set(P.map(p=>p.originPort))].join(', ');
+ const q=low(ui.pickQ);const shown=F.filter(f=>!q||low(f.companyName+' '+f.portOrCity+' '+(f.serviceModes||[]).join(' ')).includes(q));
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="Choose forwarders" style="width:min(760px,100%)">
+ <div class="mhead"><h2>${one?`Send RFQ · PO ${esc(one.poNumber)}`:`Send RFQ · ${P.length} POs`}</h2><button class="btn" data-act="close">Close</button></div>
+ <form class="mbody" data-form="pickff">
+ <div class="pksum">${one?`<b>${esc(one.description)}</b> · ${esc(one.supplierName)}<br>`:''}<span class="small">${esc(ports)} → Guwahati (GAU) · ${Math.round(gross)} kg gross · ${cbm.toFixed(2)} CBM${one&&one.packing?` · ${esc(one.packing.units)} ${esc(one.packing.mode)} · pickup ${fdate(one.packing.pickupReadyDate)}`:''}</span></div>
+ <div class="row sec" style="justify-content:space-between"><label style="flex:1 1 240px">Find forwarder<input id="pickQ" value="${esc(ui.pickQ)}" placeholder="Name, city, port or mode" autocomplete="off"></label>
+ <div class="row" style="align-self:end"><button type="button" class="btn small" data-act="pickAll" data-v="1">Select all</button><button type="button" class="btn small" data-act="pickAll" data-v="">Clear</button></div></div>
+ <div class="pklist sec">${shown.length?shown.map(f=>{const e=low(f.email),inv=invitedAll(e),st=ffStats(e),on=ui.pick.includes(e);
+  return `<label class="pk ${inv?'locked':''} ${on?'on':''}"><input type="checkbox" name="ff" value="${esc(e)}" ${on||inv?'checked':''} ${inv?'disabled':''} data-pick>
+  <span class="pkm"><b>${esc(f.companyName)}</b> <span class="small">${esc(f.ffCode)}</span><br><span class="small">${esc(f.contactName)} · ${esc(f.email)}</span></span>
+  <span class="pkr"><span class="nw">${esc(f.portOrCity)}</span><br><span class="small">${esc((f.serviceModes||[]).join(' · '))}</span></span>
+  <span class="pkr small nw">${inv?'<b class="ok">Already invited</b>':`${st.q} quote${st.q===1?'':'s'} · ${st.w} won`}</span></label>`}).join(''):'<p class="muted">No forwarder matches.</p>'}</div>
+ <div class="row sec" style="justify-content:space-between"><span class="small">Forwarders get the cargo details and supplier documents in their portal.</span>
+ <div class="row"><button type="button" class="btn" data-act="close">Cancel</button><button class="btn primary" id="pickGo" ${ui.pick.length?'':'disabled'}>Send RFQ to ${ui.pick.length} forwarder${ui.pick.length===1?'':'s'}</button></div></div>
+ </form></div></div>`}
+function openPick(ids){
+ const P=ids.map(po).filter(Boolean);if(!P.length)return;
+ ui.pickQ='';ui.pick=P.some(p=>p.status==='docs_submitted')?ffs().map(f=>low(f.email)):[];
+ ui.modal={kind:'pickff',ids};renderModal()}
+function tabResp(){
+ const f=ui.rf,c={recv:respBase('recv').length,ready:respBase('ready').length,sent:respBase('sent').length,wait:respBase('wait').length};
+ const supList=[...new Map(respBase(f.st).map(p=>[low(p.supplierEmail),p.supplierName])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+ const V=[['wait','Awaiting supplier response',c.wait],['recv','Supplier response received',c.recv],['ready','Ready for RFQ',c.ready],['sent','RFQ already sent',c.sent]];
+ return `<div class="views sec" role="tablist">${V.map(([k,l,n])=>`<button role="tab" class="view ${f.st===k?'on':''}" data-act="rView" data-id="${k}"><span>${l}</span><b>${n}</b></button>`).join('')}</div>
+ <div class="filters sec">
+ <label class="grow">Search PO, equipment, material<input id="rq" value="${esc(f.q)}" placeholder="e.g. 4500012304 or spindle"></label>
+ <label>Supplier<select id="rsup"><option value="">All suppliers</option>${supList.map(([e,n])=>`<option value="${esc(e)}" ${f.sup===e?'selected':''}>${esc(n)}</option>`).join('')}</select></label>
+ <label>Group<select id="rgrp">${['All','Equipment','Material'].map(g=>`<option ${f.grp===g?'selected':''}>${g}</option>`).join('')}</select></label>
+ ${f.st==='wait'?'':`<label>Documents<select id="rdocs"><option value="">Any</option><option value="complete" ${f.docs==='complete'?'selected':''}>All received</option><option value="missing" ${f.docs==='missing'?'selected':''}>Missing docs</option></select></label>`}
+ <button class="btn" data-act="rClear">Clear</button></div>
+ ${['wait','recv'].includes(f.st)?'':`<div id="ffBar" class="sec">${ffBar()}</div>`}
+ <div id="respTable" class="sec">${respTable()}</div>`}
+function refreshResp(){const t=$('#respTable');if(t)t.innerHTML=respTable();const f=$('#ffBar');if(f)f.innerHTML=ffBar()}
+function refreshPick(){const g=$('#pickGo');if(g){g.disabled=!ui.pick.length;g.textContent=`Send RFQ to ${ui.pick.length} forwarder${ui.pick.length===1?'':'s'}`}document.querySelectorAll('[data-pick]').forEach(x=>x.closest('.pk').classList.toggle('on',x.checked&&!x.disabled))}
+function rfqSend(p,pick){
+ if(p.status==='docs_submitted'){dispatchRfq(p,pick);notify('logistics','RFQ dispatched',`PO ${p.poNumber} sent to ${pick.length} forwarder(s).`,p.id);return pick.length}
+ if(p.status==='rfq_open'){const add=pick.filter(e=>!p.invitedForwarderEmails.map(low).includes(e));if(!add.length)return 0;p.invitedForwarderEmails.push(...add);touch(p);
+  add.forEach(e=>notify(e,'New RFQ open',`PO ${p.poNumber} — ${p.packing.units} ${p.packing.mode}, ${p.packing.grossKg} kg, ${p.packing.cbm} CBM ${p.originPort} → ${p.destinationPort}. Please quote.`,p.id));return add.length}
+ return 0}
+
+function nfaText(p){const w=p.quotes.find(q=>q.id===p.nfa.quoteId);if(!w)return'';const qs=[...p.quotes].sort((a,b)=>a.totalUsd-b.totalUsd),k=p.packing,ch=k?Math.max(Math.round(k.cbm*167),Math.round(num(k.grossKg))):0;
+ const rank=qs.findIndex(q=>q.id===w.id)+1,hi=qs[qs.length-1].totalUsd,avg=qs.reduce((a,q)=>a+q.totalUsd,0)/qs.length;
+ return `NOTE FOR APPROVAL – FREIGHT AWARD
+PO ${p.poNumber} · ${p.description}
+Supplier: ${p.supplierName} · ${p.originPort} → ${p.destinationPort} · ${p.incoterms}
+Cargo: ${k?`${k.units} ${k.mode}, ${k.grossKg} kg gross, ${k.cbm} CBM, ${ch} kg chargeable, pickup ${fdate(k.pickupReadyDate)}`:'—'}
+
+Quotes received: ${qs.length} of ${p.invitedForwarderEmails.length} invited
+${qs.map((q,i)=>`L${i+1}  ${q.ffCompany} – ${usd(q.totalUsd)} · ${q.transitDays} days · ${q.carrier} (${q.route})`).join('\n')}
+
+Recommended: ${w.ffCompany} (L${rank}) – ${usd(w.totalUsd)} (${usd(w.baseUsd)} base + ${usd(w.surchargeUsd)} surcharges), ${w.transitDays} days, ${w.carrier}
+Saving vs highest quote: ${usd(hi-w.totalUsd)} · vs average: ${usd(Math.max(0,avg-w.totalUsd))}
+
+Justification: ${p.nfa.justification}`}
+function nfaCard(p){const w=p.quotes.find(q=>q.id===p.nfa.quoteId);if(!w)return'';const qs=[...p.quotes].sort((a,b)=>a.totalUsd-b.totalUsd),rank=qs.findIndex(q=>q.id===w.id)+1,hi=qs[qs.length-1].totalUsd,k=p.packing;
+ const approved=p.nfa.status==='approved';
+ return `<div class="card sec nfa"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3><a href="#" class="polink mono" data-act="open" data-id="${esc(p.id)}">${esc(p.poNumber)}</a> · ${esc(p.description)}</h3><div class="small">${esc(p.supplierName)} · ${esc(p.originPort)} → ${esc(p.destinationPort)}${k?` · ${esc(k.grossKg)} kg · ${esc(k.cbm)} CBM`:''} · selected ${fdt(p.nfa.selectedAt)}</div></div><span class="pill ${approved?'s-delivered':'s-po_issued'}">${approved?'NFA approved':'NFA pending approval'}</span></div>
+ <div class="rgrid sec"><div class="rbox"><span>Recommended forwarder</span><b>${esc(w.ffCompany)}</b><em>L${rank} of ${qs.length} · ${esc(w.carrier)}</em></div>
+ <div class="rbox"><span>Freight cost</span><b>${usd(w.totalUsd)}</b><em>${usd(w.baseUsd)} base + ${usd(w.surchargeUsd)}</em></div>
+ <div class="rbox"><span>Transit</span><b>${esc(w.transitDays)} days</b><em>${esc(w.route)}</em></div>
+ <div class="rbox"><span>Saving vs highest</span><b>${usd(hi-w.totalUsd)}</b><em>${qs.length} quotes compared</em></div></div>
+ <form data-form="nfaSave" data-id="${esc(p.id)}" class="sec"><label>Justification for NFA<textarea name="j" maxlength="600" style="min-height:70px">${esc(p.nfa.justification)}</textarea></label>
+ <div class="row sec">${approved?`<button type="button" class="btn primary" data-act="award" data-id="${esc(p.id)}" data-q="${esc(w.id)}">Ask for PO (Ariba)</button>`:`<button type="button" class="btn primary" data-act="nfaApprove" data-id="${esc(p.id)}">Mark NFA approved</button>`}
+ <button class="btn">Save justification</button><button type="button" class="btn" data-act="nfaCopy" data-id="${esc(p.id)}">Copy NFA note</button><button type="button" class="btn" data-act="nfaBack" data-id="${esc(p.id)}">Change selection</button></div></form>
+ <details class="sec"><summary><b>All ${qs.length} quotes</b></summary><div class="sec">${quoteTable(p,false)}</div></details></div>`}
+const DAYMS=864e5,dd=(a,b)=>a&&b?(new Date(b)-new Date(a))/DAYMS:null,avgOf=a=>{const v=a.filter(x=>x!=null&&isFinite(x)&&x>=0);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+const f1=v=>v==null?'—':v.toFixed(1),pct=(a,b)=>b?Math.round(a/b*100)+'%':'—',kg=p=>p.packing?Math.max(Math.round(p.packing.cbm*167),Math.round(num(p.packing.grossKg))):0;
+const winQ=p=>p.quotes.find(q=>q.status==='awarded'),awardAt=p=>p.awardedAt||(winQ(p)?.at)||null,AWD=['ff_awarded','in_transit','delivered'];
+const pickedUp=p=>p.tracking.find(t=>t.milestone==='picked_up')?.at||(p.shipment&&!['','awaiting_pickup'].includes(p.shipment.milestone)?p.shipment.pickupTime:null);
+const countryOf=p=>p.packing?.coo||cooOf(p.originPort)||'Unknown',regionOf=p=>REGION[countryOf(p)]||'Other';
+function xPos(){const f=ui.xf;return db.pos.filter(p=>(f.grp==='All'||p.purchaseGroup===f.grp)&&(!f.dest||p.plant===f.dest)&&(!f.reg||regionOf(p)===f.reg))}
+function hbars(L,fmt,sub){const mx=Math.max(1,...L.map(x=>x.v));return L.length?`<div class="bars">${L.map(x=>`<div class="brow" title="${esc(x.k)}: ${fmt(x.v)}${x.s?' · '+esc(x.s):''}"><span class="bl">${esc(x.k)}</span><span class="bt"><i style="width:${Math.max(2,x.v/mx*100)}%"></i></span><span class="bv"><b>${fmt(x.v)}</b>${x.s?`<em>${esc(x.s)}</em>`:''}</span></div>`).join('')}</div>`:'<p class="muted">No data yet.</p>'}
+function execData(){
+ const P=xPos(),A=P.filter(p=>AWD.includes(p.status)&&winQ(p));
+ const spend=A.reduce((a,p)=>a+winQ(p).totalUsd,0),chg=A.reduce((a,p)=>a+kg(p),0);
+ const hi=A.reduce((a,p)=>a+Math.max(...p.quotes.map(q=>q.totalUsd)),0),save=hi-spend;
+ const goods=A.reduce((a,p)=>a+p.items.reduce((s,i)=>s+num(i.qty)*priceOf(i.material),0),0);
+ const D=P.filter(p=>p.status==='delivered'&&p.shipment?.actualDelivery),onT=D.filter(p=>new Date(p.shipment.actualDelivery)<=new Date(p.shipment.eta));
+ const late=P.filter(p=>['ff_awarded','in_transit'].includes(p.status)&&p.shipment?.eta&&new Date(p.shipment.eta)<new Date());
+ const cyc={resp:avgOf(P.map(p=>p.packing?dd(p.createdAt,p.packing.submittedAt):null)),award:avgOf(A.map(p=>dd(p.packing?.submittedAt,awardAt(p)))),pick:avgOf(A.map(p=>dd(awardAt(p),pickedUp(p)))),transit:avgOf(D.map(p=>dd(pickedUp(p),p.shipment.actualDelivery))),e2e:avgOf(D.map(p=>dd(p.createdAt,p.shipment.actualDelivery)))};
+ return{P,A,D,onT,late,spend,chg,save,hi,goods,cyc}}
+function execSummary(){const x=execData();return `Freight control tower – exec summary (${fdate(day(0))})
+• Freight awarded: ${usd(x.spend)} on ${x.A.length} shipments · ${x.chg?'$'+(x.spend/x.chg).toFixed(2):'—'}/kg chargeable
+• Savings vs highest quote: ${usd(x.save)} (${x.hi?(x.save/x.hi*100).toFixed(1):0}%)
+• On-time delivery: ${pct(x.onT.length,x.D.length)} of ${x.D.length} delivered · ${x.late.length} in-flight past ETA
+• Cost per chargeable kg by origin: ${['APAC','EMEA','North America'].map(r=>{const L=x.A.filter(p=>regionOf(p)===r),sp=L.reduce((s,p)=>s+winQ(p).totalUsd,0),k=L.reduce((s,p)=>s+kg(p),0);return `${r} ${k?'$'+(sp/k).toFixed(2):'—'}`}).join(' · ')}
+• Cycle time: supplier reply ${f1(x.cyc.resp)} d · RFQ to award ${f1(x.cyc.award)} d · transit ${f1(x.cyc.transit)} d · PO request to delivery ${f1(x.cyc.e2e)} d
+• Open: ${x.P.filter(p=>p.status==='po_issued').length} awaiting supplier (${x.P.filter(p=>p.status==='po_issued'&&ageDays(p.createdAt)>=5).length} overdue 5+ days) · ${x.P.filter(p=>p.status==='rfq_open').length} RFQs open · ${x.P.filter(p=>p.status==='in_transit').length} in transit`}
+function tabExec(){
+ const f=ui.xf,x=execData(),P=x.P,A=x.A,all=feedRows();
+ const dests=[...new Set(db.pos.map(p=>p.plant).filter(Boolean))].sort();
+ // pipeline
+ const st=r=>shipOf(r);const F=all.filter(r=>(f.grp==='All'||r.purchaseGroup===f.grp)&&(!f.dest||r.plant===f.dest));
+ const pipe=[['Not requested','new'],['Details requested','po_issued'],['Response received','docs_submitted'],['With forwarders','rfq_open'],['Ready for NFA','nfa'],['FF awarded','ff_awarded'],['In transit','in_transit'],['Delivered','delivered']].map(([k,c])=>({k,v:F.filter(r=>st(r)===c).length}));
+ const pmx=Math.max(1,...pipe.map(x=>x.v));
+ // attention
+ const att=[];
+ P.filter(p=>p.status==='po_issued'&&ageDays(p.createdAt)>=5).forEach(p=>att.push(['crit',`${p.supplierName} — no shipment details for PO ${p.poNumber} after ${ageDays(p.createdAt)} days`,p.id]));
+ P.filter(p=>p.status==='docs_submitted'&&missingDocs(p).length&&!p.rfqReady).forEach(p=>att.push(['warn',`PO ${p.poNumber}: ${missingDocs(p).length} document(s) missing from ${p.supplierName}`,p.id]));
+ x.late.forEach(p=>att.push(['crit',`PO ${p.poNumber} past ETA (${fdate(p.shipment.eta)}) with ${p.awardedForwarderCompany}`,p.id]));
+ P.filter(p=>p.status==='rfq_open'&&!p.nfa&&p.quotes.length<2).forEach(p=>att.push(['warn',`PO ${p.poNumber}: only ${p.quotes.length} quote(s) from ${p.invitedForwarderEmails.length} invited`,p.id]));
+ P.filter(p=>p.status==='rfq_open'&&p.nfa&&p.nfa.status!=='approved').forEach(p=>att.push(['info',`PO ${p.poNumber}: NFA waiting for approval`,p.id]));
+ P.filter(p=>p.status==='docs_submitted'&&isReady(p)).length&&att.push(['info',`${P.filter(p=>p.status==='docs_submitted'&&isReady(p)).length} supplier responses ready for RFQ`,'']);
+ // weekly spend
+ const wk=d=>{const t=new Date(d);t.setHours(0,0,0,0);t.setDate(t.getDate()-((t.getDay()+6)%7));return t};
+ const W=[];const w0=wk(new Date());for(let i=7;i>=0;i--){const a=new Date(w0);a.setDate(a.getDate()-7*i);W.push(a)}
+ const wks=W.map(a=>{const b=new Date(a);b.setDate(b.getDate()+7);const L=A.filter(p=>{const t=new Date(awardAt(p));return t>=a&&t<b});return{a,v:L.reduce((s,p)=>s+winQ(p).totalUsd,0),n:L.length}}),wmx=Math.max(1,...wks.map(w=>w.v));
+ // supplier scorecard
+ const supRows=[...new Set(P.map(p=>low(p.supplierEmail)))].map(e=>{const L=P.filter(p=>low(p.supplierEmail)===e),R=L.filter(p=>p.packing),Aw=L.filter(p=>AWD.includes(p.status)&&winQ(p));
+  return{name:L[0].supplierName,country:countryOf(L[0]),reg:regionOf(L[0]),n:L.length,wait:L.filter(p=>p.status==='po_issued').length,over:L.filter(p=>p.status==='po_issued'&&ageDays(p.createdAt)>=5).length,resp:avgOf(R.map(p=>dd(p.createdAt,p.packing.submittedAt))),docs:R.length?R.filter(p=>!missingDocs(p).length).length/R.length:null,spend:Aw.reduce((s,p)=>s+winQ(p).totalUsd,0),kgs:Aw.reduce((s,p)=>s+kg(p),0),goods:L.reduce((s,p)=>s+p.items.reduce((t,i)=>t+num(i.qty)*priceOf(i.material),0),0)}}).sort((a,b)=>b.spend-a.spend);
+ // forwarder scorecard
+ const ffRows=ffs().map(f=>{const e=low(f.email),Inv=P.filter(p=>p.invitedForwarderEmails.map(low).includes(e)&&!['po_issued','docs_submitted'].includes(p.status)),Q=P.filter(p=>p.quotes.some(q=>low(q.ffEmail)===e)),Wn=P.filter(p=>low(p.awardedForwarderEmail)===e&&winQ(p)),Dl=Wn.filter(p=>p.status==='delivered'&&p.shipment?.actualDelivery);
+  return{name:f.companyName,inv:Inv.length,q:Q.length,won:Wn.length,closed:Q.filter(p=>AWD.includes(p.status)).length,spend:Wn.reduce((s,p)=>s+winQ(p).totalUsd,0),kgs:Wn.reduce((s,p)=>s+kg(p),0),transit:avgOf(Wn.map(p=>winQ(p).transitDays)),ontime:Dl.length?Dl.filter(p=>new Date(p.shipment.actualDelivery)<=new Date(p.shipment.eta)).length/Dl.length:null,dl:Dl.length}}).sort((a,b)=>b.spend-a.spend||b.q-a.q);
+ const byKey=(fn,lbl)=>{const m=new Map();A.forEach(p=>{const k=fn(p);const o=m.get(k)||{k,v:0,n:0,kg:0};o.v+=winQ(p).totalUsd;o.n++;o.kg+=kg(p);m.set(k,o)});return [...m.values()].sort((a,b)=>b.v-a.v).map(o=>({k:o.k,v:o.v,s:`${o.n} shipment(s) · $${(o.v/Math.max(1,o.kg)).toFixed(2)}/kg`}))};
+ const cyc=[['Supplier reply','PO request → packing & docs',x.cyc.resp],['RFQ to award','Docs → forwarder awarded',x.cyc.award],['Award to pickup','Ariba PO → cargo picked up',x.cyc.pick],['Transit','Pickup → delivered at plant',x.cyc.transit]];
+ const cmx=Math.max(1,...cyc.map(c=>c[2]||0));
+ const pc=v=>v==null?'—':Math.round(v*100)+'%';
+ return `<div class="filters sec"><label>Purchase group<select id="xfg">${['All','Equipment','Material'].map(g=>`<option ${f.grp===g?'selected':''}>${g}</option>`).join('')}</select></label>
+ <label>Destination (ship-to)<select id="xfd"><option value="">All destinations</option>${dests.map(d=>`<option ${f.dest===d?'selected':''}>${esc(d)}</option>`).join('')}</select></label>
+ <label>Origin region<select id="xfr"><option value="">All regions</option>${['APAC','EMEA','North America'].map(r=>`<option ${f.reg===r?'selected':''}>${r}</option>`).join('')}</select></label>
+ <button class="btn" data-act="execCopy" style="align-self:end">Copy exec summary</button></div>
+ <div class="kpis sec">
+ <div class="kpi"><span>Freight awarded</span><b>${usd(x.spend)}</b><em class="small">${A.length} shipments · ${x.goods?(x.spend/x.goods*100).toFixed(1):'0'}% of goods value</em></div>
+ <div class="kpi"><span>Savings vs highest quote</span><b>${usd(x.save)}</b><em class="small">${x.hi?(x.save/x.hi*100).toFixed(1):0}% saved through competitive RFQ</em></div>
+ <div class="kpi"><span>Cost per chargeable kg</span><b>${x.chg?'$'+(x.spend/x.chg).toFixed(2):'—'}</b><em class="small">${Math.round(x.chg).toLocaleString('en-US')} kg awarded</em></div>
+ <div class="kpi"><span>On-time delivery</span><b>${pct(x.onT.length,x.D.length)}</b><em class="small">${x.onT.length} of ${x.D.length} delivered by ETA · ${x.late.length} in flight past ETA</em></div>
+ <div class="kpi"><span>Supplier reply time</span><b>${f1(x.cyc.resp)} d</b><em class="small">avg, request → packing & docs</em></div>
+ <div class="kpi"><span>PO request → delivery</span><b>${f1(x.cyc.e2e)} d</b><em class="small">avg end to end, delivered POs</em></div></div>
+ <div class="grid2 sec">
+ <div class="card"><h3>Pipeline — where POs are now</h3><p class="small">${F.length} POs in scope</p><div class="bars">${pipe.map(x=>`<div class="brow" title="${x.k}: ${x.v} PO(s)"><span class="bl">${x.k}</span><span class="bt"><i style="width:${x.v?Math.max(2,x.v/pmx*100):0}%"></i></span><span class="bv"><b>${x.v}</b></span></div>`).join('')}</div></div>
+ <div class="card"><h3>Needs attention (${att.length})</h3><p class="small">Click an item to open the PO</p><ul class="att">${att.length?att.slice(0,9).map(([l,t,id])=>`<li class="${l}" ${id?`data-act="open" data-id="${esc(id)}"`:''}><span class="tagw">${l==='crit'?'⚠ Overdue':l==='warn'?'Check':'Info'}</span>${esc(t)}</li>`).join(''):'<li class="info"><span class="tagw">Info</span>Nothing needs attention right now.</li>'}${att.length>9?`<li class="info"><span class="tagw">More</span>${att.length-9} more item(s)</li>`:''}</ul></div></div>
+ <div class="grid2 sec">
+ <div class="card"><h3>Freight awarded per week</h3><p class="small">Last 8 weeks · USD · hover a bar</p><div class="mchart w8">${wks.map(w=>`<div class="mcol" title="Week of ${fdate(w.a)}: ${usd(w.v)} · ${w.n} shipment(s)"><span class="mv">${w.v?usd(w.v):'—'}</span><span class="mbar"><i style="height:${w.v?Math.max(3,w.v/wmx*100):0}%"></i></span><span class="ml">${w.a.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span></div>`).join('')}</div></div>
+ <div class="card"><h3>Cycle time by stage</h3><p class="small">Average days · delivered and awarded POs</p><div class="bars">${cyc.map(([k,s2,v])=>`<div class="brow" title="${k}: ${f1(v)} days · ${s2}"><span class="bl" style="white-space:normal">${k}<em class="small" style="display:block;font-style:normal;white-space:normal">${s2}</em></span><span class="bt"><i style="width:${v?Math.max(2,v/cmx*100):0}%"></i></span><span class="bv"><b>${f1(v)} d</b></span></div>`).join('')}</div></div></div>
+ <div class="grid2 sec"><div class="card"><h3>Spend by destination</h3>${hbars(byKey(p=>p.plant||'—'),usd)}</div><div class="card"><h3>Spend by purchasing group</h3>${hbars(byKey(p=>PG[pgOf(p)]||p.purchaseGroup),usd)}</div></div>
+ ${(()=>{const geo=(fn)=>{const m=new Map();A.forEach(p=>{const k=fn(p);const o=m.get(k)||{k,sp:0,kg:0,n:0,tr:[],d:0,ot:0,reg:regionOf(p)};o.sp+=winQ(p).totalUsd;o.kg+=kg(p);o.n++;o.tr.push(winQ(p).transitDays);if(p.status==='delivered'&&p.shipment?.actualDelivery){o.d++;if(new Date(p.shipment.actualDelivery)<=new Date(p.shipment.eta))o.ot++}m.set(k,o)});return [...m.values()]};
+  const R=geo(regionOf).sort((a,b)=>b.sp/Math.max(1,b.kg)-a.sp/Math.max(1,a.kg)),Cn=geo(countryOf).sort((a,b)=>b.sp/Math.max(1,b.kg)-a.sp/Math.max(1,a.kg)),rmx=Math.max(1,...R.map(o=>o.sp/Math.max(1,o.kg))),allKg=x.chg?x.spend/x.chg:0;
+  const pend=P.filter(p=>!AWD.includes(p.status)&&p.packing),pc2=[...new Set(P.map(countryOf))].length;
+  return `<h2 class="sec">Freight cost by origin</h2><p class="small">${pc2} countries of origin in scope · cost per chargeable kg is the fair comparison across shipment sizes</p>
+  <div class="grid2 sec"><div class="card"><h3>By region — cost per chargeable kg</h3><p class="small">Average across all regions: ${allKg?'$'+allKg.toFixed(2):'—'}/kg</p><div class="bars">${R.map(o=>{const v=o.sp/Math.max(1,o.kg);return `<div class="brow" title="${esc(o.k)}: $${v.toFixed(2)}/kg · ${usd(o.sp)} on ${o.n} shipment(s) · avg transit ${f1(avgOf(o.tr))} d"><span class="bl"><b>${esc(o.k)}</b><em class="small" style="display:block;font-style:normal">${o.n} shipments · ${usd(o.sp)}</em></span><span class="bt"><i style="width:${Math.max(2,v/rmx*100)}%"></i></span><span class="bv"><b>$${v.toFixed(2)}/kg</b><em>${f1(avgOf(o.tr))} d transit</em></span></div>`}).join('')}</div></div>
+  <div class="card"><h3>What drives the gap</h3><ul class="att">${R.map(o=>{const v=o.sp/Math.max(1,o.kg),d=allKg?((v-allKg)/allKg*100):0;return `<li class="${d>15?'warn':'info'}"><span class="tagw">${d>=0?'+':''}${d.toFixed(0)}%</span>${esc(o.k)}: $${v.toFixed(2)}/kg vs $${allKg.toFixed(2)} average · ${f1(avgOf(o.tr))} days transit · on-time ${o.d?Math.round(o.ot/o.d*100)+'%':'—'}</li>`}).join('')}<li class="info"><span class="tagw">Pipeline</span>${pend.length} more POs with packing details not yet awarded: ${['APAC','EMEA','North America'].map(r=>`${r} ${pend.filter(p=>regionOf(p)===r).length}`).join(' · ')}</li></ul></div></div>
+  <div class="tbl scroll sec"><table class="rt"><thead><tr><th>Country of origin</th><th>Region</th><th class="r">Shipments</th><th class="r">Freight awarded</th><th class="r">Chargeable kg</th><th class="r">$/kg</th><th class="r">vs average</th><th class="r">Avg transit</th><th class="r">On-time</th></tr></thead><tbody>
+  ${Cn.map(o=>{const v=o.sp/Math.max(1,o.kg),d=allKg?((v-allKg)/allKg*100):0;return `<tr><td><b>${esc(o.k)}</b></td><td>${esc(o.reg)}</td><td class="r">${o.n}</td><td class="r">${usd(o.sp)}</td><td class="r">${Math.round(o.kg).toLocaleString('en-US')}</td><td class="r"><b>$${v.toFixed(2)}</b></td><td class="r"><span class="${d>15?'bad':d<-15?'okc':''}">${d>=0?'+':''}${d.toFixed(0)}%</span></td><td class="r">${f1(avgOf(o.tr))} d</td><td class="r">${o.d?Math.round(o.ot/o.d*100)+'%':'—'} <span class="small">(${o.d})</span></td></tr>`}).join('')}</tbody></table></div>`})()}
+ <h2 class="sec">Supplier scorecard</h2>
+ <div class="tbl scroll sec"><table class="rt"><thead><tr><th>Supplier</th><th>Country</th><th class="r">POs</th><th class="r">Avg reply (days)</th><th class="r">Docs complete</th><th class="r">Waiting · overdue</th><th class="r">Goods value</th><th class="r">Freight awarded</th><th class="r">$/kg</th></tr></thead><tbody>
+ ${supRows.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.country)}<div class="small">${esc(r.reg)}</div></td><td class="r">${r.n}</td><td class="r"><span class="${r.resp>=5?'bad':r.resp>=3?'warnt':''}">${f1(r.resp)}</span></td><td class="r"><span class="${r.docs!=null&&r.docs<0.8?'bad':''}">${pc(r.docs)}</span></td><td class="r">${r.wait}${r.over?` · <span class="bad">${r.over} overdue</span>`:''}</td><td class="r">${usd(r.goods)}</td><td class="r"><b>${usd(r.spend)}</b></td><td class="r">${r.kgs?'$'+(r.spend/r.kgs).toFixed(2):'—'}</td></tr>`).join('')}</tbody></table></div>
+ <h2 class="sec">Forwarder scorecard</h2>
+ <div class="tbl scroll sec"><table class="rt"><thead><tr><th>Forwarder</th><th class="r">RFQs invited</th><th class="r">Quoted</th><th class="r">Response rate</th><th class="r">Won</th><th class="r">Win rate</th><th class="r">Freight awarded</th><th class="r">$/kg</th><th class="r">Avg transit</th><th class="r">On-time</th></tr></thead><tbody>
+ ${ffRows.map(r=>`<tr><td><b>${esc(r.name)}</b></td><td class="r">${r.inv}</td><td class="r">${r.q}</td><td class="r"><span class="${r.inv&&r.q/r.inv<0.5?'bad':''}">${pct(Math.min(r.q,r.inv),r.inv)}</span></td><td class="r">${r.won}</td><td class="r">${pct(r.won,r.closed)}</td><td class="r"><b>${usd(r.spend)}</b></td><td class="r">${r.kgs?'$'+(r.spend/r.kgs).toFixed(2):'—'}</td><td class="r">${r.transit!=null?f1(r.transit)+' d':'—'}</td><td class="r"><span class="${r.ontime!=null&&r.ontime<1?'warnt':''}">${r.ontime==null?'—':pc(r.ontime)+` <span class="small">(${r.dl})</span>`}</span></td></tr>`).join('')}</tbody></table></div>
+ <p class="small sec">Definitions: savings = highest quote minus awarded quote, per PO. Chargeable kg = greater of gross weight and volume weight (CBM × 167). On-time = delivered on or before the forwarder's ETA. Win rate = wins ÷ quotes on POs already awarded. Values come from the sample data in this prototype.</p>`}
+
+function tabRfq(){
+ const q=low(ui.qf.q),m=p=>!q||[p.poNumber,p.description,p.supplierName].some(v=>low(v).includes(q));
+ const nfa=db.pos.filter(p=>p.status==='rfq_open'&&p.nfa&&m(p));
+ const open=db.pos.filter(p=>p.status==='rfq_open'&&!p.nfa&&m(p)).sort((a,b)=>b.quotes.length-a.quotes.length),done=db.pos.filter(p=>['ff_awarded','in_transit','delivered'].includes(p.status)&&m(p));
+ const V=[['open','To compare',db.pos.filter(p=>p.status==='rfq_open'&&!p.nfa).length],['nfa','Ready for NFA',db.pos.filter(p=>p.status==='rfq_open'&&p.nfa).length],['done','Awarded · Ariba PO',db.pos.filter(p=>['ff_awarded','in_transit','delivered'].includes(p.status)).length]];
+ return `<div class="views sec">${V.map(([k,l,n])=>`<button class="view ${ui.qf.v===k?'on':''}" data-act="qView" data-id="${k}"><span>${l}</span><b>${n}</b></button>`).join('')}</div>
+ <div class="filters sec"><label class="grow">Search PO, equipment, supplier<input id="qfq" value="${esc(ui.qf.q)}" placeholder="e.g. 4500012322"></label></div>
+ <div id="qList">${ui.qf.v==='nfa'?(nfa.length?nfa.map(nfaCard).join(''):'<p class="muted sec">No POs are waiting for NFA. Select a quote under “To compare” to move it here.</p>'):ui.qf.v==='done'?(done.length?`<div class="tbl sec"><table class="stack"><thead><tr><th>PO</th><th>Forwarder</th><th class="r">Rate</th><th>Ariba reference</th><th>Status</th></tr></thead><tbody>${done.map(p=>{const w=p.quotes.find(q=>q.status==='awarded');return `<tr class="click" data-act="open" data-id="${esc(p.id)}"><td><span class="mono">${esc(p.poNumber)}</span><div class="small">${esc(p.description)}</div></td><td>${esc(p.awardedForwarderCompany)}</td><td class="r">${w?usd(w.totalUsd):'—'}</td><td>${esc(p.aribaPoRef)}<div class="small">${esc(p.aribaSyncStatus)}</div></td><td>${pill(p.status)}</td></tr>`}).join('')}</tbody></table></div>`:'<p class="muted sec">Nothing awarded yet.</p>')
+ :(open.length?open.map(p=>{const k=p.packing,ch=k?Math.max(Math.round(k.cbm*167),Math.round(num(k.grossKg))):0;return `<div class="card sec"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3><a href="#" class="polink mono" data-act="open" data-id="${esc(p.id)}">${esc(p.poNumber)}</a> · ${esc(p.description)}</h3><div class="small">${esc(p.supplierName)} · ${esc(p.originPort)} → ${esc(p.destinationPort)}${k?` · ${esc(k.units)} ${esc(k.mode)} · ${esc(k.grossKg)} kg gross · ${esc(k.cbm)} CBM · ${ch} kg chargeable · pickup ${fdate(k.pickupReadyDate)}`:''}</div></div>
+ <div class="row"><span class="small nw">${p.quotes.length} of ${p.invitedForwarderEmails.length} quoted</span><button class="btn small" data-act="rfqOne" data-id="${esc(p.id)}">Add FF</button></div></div><div class="sec">${quoteTable(p,true)}</div></div>`}).join(''):'<p class="muted sec">No RFQs waiting for comparison.</p>')}</div>`}
+
+function tabSap(){
+ const r=ui.sapResult||(db.catalog[0]?{q:db.catalog[db.catalog.length-1].poNumber,found:db.catalog[db.catalog.length-1]}:null);const issued=n=>db.pos.some(p=>p.poNumber===n);
+ return `<div class="grid2 sec">
+ <div class="card"><h3>SAP gateway status</h3><p><span class="pill s-po_issued">Live SAP OData: not connected</span></p><p class="small">This build runs fully in your browser, so PO lookups use the SAP PO Catalog below. Ariba awards generate a queued reference (ARIBA-PO-…).</p>
+ <form data-form="sapTest" class="row"><label style="flex:1">Test PO lookup<input name="po" placeholder="PO number"></label><button class="btn">Look up</button></form>
+ ${r?(r.found?`<div class="calc" style="margin-top:12px">Found ${esc(r.found.poNumber)} · ${esc(r.found.supplierName)} · ${esc(r.found.items.length)} line(s) · source: SAP PO Catalog</div>`:`<div class="calc bad" style="margin-top:12px">PO ${esc(r.q)} is not in the catalog.</div>`):''}</div>
+ <div class="card"><h3>CSV bulk import</h3><p class="small">Columns: poNumber, purchaseGroup, description, supplierName, supplierEmail, vendorCode, plant, originPort, destinationPort, incoterms, deliveryDate, material, quantity, unit. Rows with the same poNumber become line items.</p>
+ <form data-form="csv"><label>Choose a .csv file<input type="file" id="csvFile" accept=".csv,text/csv"></label><label style="margin-top:10px">…or paste CSV<textarea name="csv" id="csvText" placeholder="Paste CSV here"></textarea></label>
+ <div class="row" style="margin-top:10px"><button class="btn primary">Import</button><button type="button" class="btn" data-act="sampleCsv">Insert sample CSV</button></div></form></div></div>
+ <div class="card sec"><h3>Add PO to SAP catalog manually</h3>
+ <form data-form="catAdd" class="form" style="margin-top:12px">
+ <label>PO number*<input name="poNumber" required pattern="[0-9A-Za-z-]{4,20}"></label>
+ <label>Purchase group<select name="purchaseGroup"><option>Equipment</option><option>Material</option></select></label>
+ <label class="full">Description*<input name="description" required maxlength="120"></label>
+ <label>Supplier name*<input name="supplierName" required maxlength="80"></label><label>Supplier email*<input name="supplierEmail" type="email" required></label>
+ <label>Vendor code<input name="vendorCode" maxlength="20"></label><label>Plant<input name="plant" value="BLR – Bangalore plant, Karnataka"></label>
+ <label>Origin port<input name="originPort"></label><label>Destination port<input name="destinationPort" value="Guwahati (GAU)"></label>
+ <label>Incoterms<select name="incoterms">${['FCA','EXW','FOB','CPT','CIF','DAP','DDP'].map(i=>`<option>${i}</option>`).join('')}</select></label><label>Delivery date<input name="deliveryDate" type="date"></label>
+ <label>Material<input name="material"></label><label>Quantity<input name="qty" type="number" min="0" step="any"></label><label>Unit<input name="unit" value="EA"></label>
+ <div class="full"><button class="btn primary">Add to catalog</button></div></form></div>
+ <div class="sec"><h3>SAP PO Catalog (${db.catalog.length})</h3>
+ ${db.catalog.length?`<div class="tbl sec"><table class="stack"><thead><tr><th>PO</th><th>Group</th><th>Supplier</th><th>Lines</th><th>Delivery</th><th>Source</th><th></th></tr></thead><tbody>
+ ${db.catalog.map(c=>`<tr><td><b>${esc(c.poNumber)}</b><div class="small">${esc(c.description)}</div></td><td>${esc(c.purchaseGroup)}</td><td>${esc(c.supplierName)}</td><td>${c.items.map(i=>`${esc(i.material)} × ${esc(i.qty)} ${esc(i.unit)}`).join('<br>')}</td><td>${fdate(c.deliveryDate)}</td><td>${esc(c.source)}</td>
+ <td>${issued(c.poNumber)?'<span class="small">Issued</span>':`<button class="btn small primary" data-act="issueCat" data-id="${esc(c.poNumber)}">Issue PO</button>`}</td></tr>`).join('')}</tbody></table></div>`:'<p class="muted">Catalog is empty. Load sample data, add a PO, or import CSV.</p>'}</div>`}
+
+function stakeForm(type){
+ const e=ui.editType===type?db.stakeholders.find(s=>s.id===ui.editId):null;const v=k=>esc(e?.[k]??'');
+ if(type==='ff')return `<form data-form="ffSave" class="form card sec"><h3 class="full">${e?'Edit forwarder':'Add forwarder'}</h3>
+ <label>FF code*<input name="ffCode" required maxlength="12" value="${v('ffCode')}"></label><label>Company name*<input name="companyName" required maxlength="80" value="${v('companyName')}"></label>
+ <label>Contact name<input name="contactName" maxlength="60" value="${v('contactName')}"></label><label>Email*<input name="email" type="email" required value="${v('email')}"></label>
+ <label>Port or city<input name="portOrCity" maxlength="60" value="${v('portOrCity')}"></label>
+ <div><label>Service modes</label><div class="row" style="margin-top:8px">${['Air','Sea','Road','Courier'].map(m=>`<label style="color:var(--ink)"><input type="checkbox" name="mode" value="${m}" ${e?.serviceModes?.includes(m)?'checked':''}>${m}</label>`).join('')}</div></div>
+ <div class="full row"><button class="btn primary">${e?'Save changes':'Add forwarder'}</button>${e?'<button type="button" class="btn" data-act="cancelEdit">Cancel</button>':''}</div></form>`;
+ return `<form data-form="supSave" class="form card sec"><h3 class="full">${e?'Edit supplier':'Add supplier'}</h3>
+ <label>Vendor code*<input name="vendorCode" required maxlength="20" value="${v('vendorCode')}"></label><label>Company name*<input name="companyName" required maxlength="80" value="${v('companyName')}"></label>
+ <label>Contact name<input name="contactName" maxlength="60" value="${v('contactName')}"></label><label>Email*<input name="email" type="email" required value="${v('email')}"></label>
+ <label>Purchase group<select name="purchaseGroup">${['Equipment','Material'].map(g=>`<option ${e?.purchaseGroup===g?'selected':''}>${g}</option>`).join('')}</select></label><label>City<input name="city" maxlength="60" value="${v('city')}"></label>
+ <div class="full row"><button class="btn primary">${e?'Save changes':'Add supplier'}</button>${e?'<button type="button" class="btn" data-act="cancelEdit">Cancel</button>':''}</div></form>`}
+
+function delBtn(id){return `<button class="btn small danger" data-act="del" data-id="${esc(id)}">${ui.confirm==='del:'+id?'Confirm delete':'Delete'}</button>`}
+function tabFF(){
+ const L=ffs();
+ return `${stakeForm('ff')}<div class="sec">${L.length?`<div class="tbl"><table class="stack"><thead><tr><th>Code</th><th>Company</th><th>Contact</th><th>Email</th><th>Port / city</th><th>Modes</th><th></th></tr></thead><tbody>
+ ${L.map(f=>`<tr><td><b>${esc(f.ffCode)}</b></td><td>${esc(f.companyName)}</td><td>${esc(f.contactName)}</td><td>${esc(f.email)}</td><td>${esc(f.portOrCity)}</td><td>${esc((f.serviceModes||[]).join(', '))}</td><td class="row"><button class="btn small" data-act="edit" data-id="${esc(f.id)}" data-t="ff">Edit</button>${delBtn(f.id)}</td></tr>`).join('')}</tbody></table></div>`:emptyAll('FF Master is empty')}</div>`}
+function tabSup(){
+ const L=sups();const url=location.href.split('#')[0]+'#supplier';
+ return `<div class="card sec"><h3>Partner Portal sign-in link</h3><p class="small">Share with suppliers and forwarders. They open it and pick their company under “Viewing as”.</p><div class="row"><input readonly value="${esc(url)}" id="portalUrl" style="flex:1"><button class="btn" data-act="copyUrl">Copy link</button></div></div>
+ ${stakeForm('supplier')}<div class="sec">${L.length?`<div class="tbl"><table class="stack"><thead><tr><th>Vendor</th><th>Company</th><th>Group</th><th>Contact</th><th>Email</th><th>City</th><th class="r">Open POs</th><th></th></tr></thead><tbody>
+ ${L.map(s=>`<tr><td><b>${esc(s.vendorCode)}</b></td><td>${esc(s.companyName)}</td><td>${esc(s.purchaseGroup)}</td><td>${esc(s.contactName)}</td><td>${esc(s.email)}</td><td>${esc(s.city)}</td><td class="r">${db.pos.filter(p=>low(p.supplierEmail)===low(s.email)&&p.status!=='delivered').length}</td><td class="row"><button class="btn small" data-act="edit" data-id="${esc(s.id)}" data-t="supplier">Edit</button>${delBtn(s.id)}</td></tr>`).join('')}</tbody></table></div>`:emptyAll('No suppliers yet')}</div>`}
+
+function alertList(to){
+ const L=db.notifications.filter(n=>n.to===to);
+ if(!L.length)return `<div class="card empty"><b>No alerts</b>Alerts appear here as POs move through the lifecycle.</div>`;
+ return `<div class="card" style="padding:0">${L.map(n=>`<div class="alert ${n.read?'':'unread'}" data-act="alert" data-id="${esc(n.id)}"><span class="dot"></span><div><b>${esc(n.title)}</b><div>${esc(n.body)}</div><div class="small">${fdt(n.at)}</div></div></div>`).join('')}</div>`}
+function tabAlerts(){
+ const u=db.notifications.filter(n=>n.to==='logistics'&&!n.read).length;
+ return `<div class="row sec" style="justify-content:space-between"><h3>${u} unread</h3><button class="btn" data-act="readAll" data-id="logistics">Mark all read</button></div><div class="sec">${alertList('logistics')}</div>`}
+
+/* ---------- modals ---------- */
+function issueModal(c){
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="Issue PO">
+ <div class="mhead"><h2>Fetch / Issue PO ${esc(c.poNumber)}</h2><button class="btn" data-act="close">Close</button></div>
+ <form class="mbody" data-form="issue"><input type="hidden" name="poNumber" value="${esc(c.poNumber)}">
+ <p class="small">Source: SAP PO Catalog · ${esc(c.purchaseGroup)}</p>
+ <dl class="kv"><div><dt>Description</dt><dd>${esc(c.description)}</dd></div><div><dt>Supplier</dt><dd>${esc(c.supplierName)}</dd></div><div><dt>Vendor code</dt><dd>${esc(c.vendorCode)}</dd></div><div><dt>Incoterms</dt><dd>${esc(c.incoterms)}</dd></div><div><dt>Route</dt><dd>${esc(c.originPort)} → ${esc(c.destinationPort)}</dd></div><div><dt>Delivery date</dt><dd>${fdate(c.deliveryDate)}</dd></div></dl>
+ <div class="tbl sec"><table><thead><tr><th>Line</th><th>Material</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody>${c.items.map(i=>`<tr><td>${esc(i.line)}</td><td>${esc(i.material)}</td><td>${esc(i.desc)}</td><td class="r">${esc(i.qty)} ${esc(i.unit)}</td></tr>`).join('')}</tbody></table></div>
+ <div class="form sec"><label class="full">Supplier email (PO goes to this portal)*<input name="supplierEmail" type="email" required value="${esc(c.supplierEmail)}"></label>
+ <label class="full">Request shipment & document details from supplier<textarea name="note" maxlength="1000">Please share packaging (boxes/cartons), LBH in cm, net & gross weight, pickup-ready date, and upload Commercial Invoice, Packing List, Insurance Certificate, Import & Customs docs and Certificate of Origin for PO ${esc(c.poNumber)}.</textarea></label>
+ <label class="full" style="color:var(--ink)"><input type="checkbox" name="auto">Auto-dispatch RFQ to the selected forwarders as soon as the supplier submits</label>
+ <div class="full"><label>Freight forwarders for the RFQ</label>${ffs().length?`<div class="grid3" style="margin-top:8px">${ffs().map(f=>`<label style="color:var(--ink)"><input type="checkbox" name="ff" value="${esc(low(f.email))}" checked>${esc(f.companyName)}<div class="small" style="margin-left:28px">${esc(f.portOrCity)}</div></label>`).join('')}</div>`:'<p class="small">FF Master is empty — add forwarders later and use 1-Click RFQ.</p>'}</div></div>
+ <div class="row sec"><button class="btn primary">Issue PO & request details</button><button type="button" class="btn" data-act="close">Cancel</button></div></form></div></div>`}
+
+function docsList(p,canDelete){
+ if(!p.documents.length)return '<p class="muted">No documents uploaded yet.</p>';
+ return p.documents.map(d=>`<div class="docrow"><div class="nm"><b>${esc(d.type)}</b><div class="small">${esc(d.name)} · ${(d.size/1024).toFixed(1)} KB · ${esc(d.uploadedBy)} · ${fdt(d.at)}</div></div>
+ <button class="btn small" data-act="preview" data-id="${esc(p.id)}" data-d="${esc(d.id)}">Preview</button>${canDelete?`<button class="btn small danger" data-act="delDoc" data-id="${esc(p.id)}" data-d="${esc(d.id)}">Remove</button>`:''}</div>`).join('')}
+function checklist(p,list){return `<div class="grid3">${list.map(t=>{const has=p.documents.some(d=>d.type===t);return `<div>${has?'<span class="ok">✓</span>':'<span class="bad">○</span>'} ${esc(t)}${MUST.includes(t)?' <span class="small">(required)</span>':''}</div>`}).join('')}</div>`}
+function specsKV(k){return k?`<dl class="kv">
+ <div><dt>Country of origin</dt><dd>${esc(k.coo||'—')}</dd></div><div><dt>Origin port</dt><dd>${esc(k.originPort||'—')}</dd></div><div><dt>Destination port</dt><dd>${esc(k.destPort||'—')}</dd></div>
+ <div><dt>Packaging mode</dt><dd>${k.mode==='boxes'?'Boxes':'Cartons'}</dd></div><div><dt>Quantity as per PO</dt><dd>${esc(k.qtyAsPerPo)}</dd></div>
+ <div><dt>No. of ${esc(k.mode)}</dt><dd>${esc(k.units)}</dd></div><div><dt>Crates per ${k.mode==='boxes'?'box':'carton'}</dt><dd>${esc(k.cratesPerUnit)} → ${esc(k.totalCrates)} total crates</dd></div>
+ <div><dt>Master cargo LBH (cm)</dt><dd>${esc(k.mL)} × ${esc(k.mW)} × ${esc(k.mH)}</dd></div><div><dt>Per-${k.mode==='boxes'?'box':'carton'} LBH (cm)</dt><dd>${esc(k.uL)} × ${esc(k.uW)} × ${esc(k.uH)}</dd></div>
+ <div><dt>Net weight</dt><dd>${esc(k.netKg)} kg</dd></div><div><dt>Gross weight</dt><dd>${esc(k.grossKg)} kg</dd></div>
+ <div><dt>Weight per count</dt><dd>${esc(k.perCountKg)} kg</dd></div><div><dt>Total CBM</dt><dd>${esc(k.cbm)}</dd></div>
+ <div><dt>Pickup ready</dt><dd>${fdate(k.pickupReadyDate)}</dd></div><div><dt>Submitted</dt><dd>${fdt(k.submittedAt)}</dd></div>
+ ${k.remarks?`<div style="grid-column:1/-1"><dt>Supplier remarks</dt><dd>${esc(k.remarks)}</dd></div>`:''}</dl>`:'<p class="muted">The supplier has not submitted packing specs yet.</p>'}
+function timeline(p){
+ const s=p.shipment;
+ return `${s?`<div class="card"><dl class="kv"><div><dt>AWB</dt><dd>${esc(s.awb)} ${awbCheck(s.awb).ok?'<span class="ok">✓ valid</span>':'<span class="bad">invalid</span>'}</dd></div><div><dt>Carrier</dt><dd>${esc(s.carrier)}</dd></div>
+ <div><dt>Pickup</dt><dd>${fdt(s.pickupTime)}<div class="small">${esc(s.pickupLocation)}</div></dd></div><div><dt>Route</dt><dd>${esc(s.originPort)} → ${esc(s.destinationPort)}</dd></div>
+ <div><dt>Est. departure</dt><dd>${fdt(s.etd)}</dd></div><div><dt>Est. arrival</dt><dd>${fdt(s.eta)}</dd></div><div><dt>Actual delivery</dt><dd>${fdt(s.actualDelivery)}</dd></div><div><dt>Current milestone</dt><dd>${esc(MILE[s.milestone]||s.milestone)}</dd></div></dl></div>`:'<p class="muted">No schedule yet. The awarded forwarder adds AWB and pickup details.</p>'}
+ <h3 class="sec">Tracking milestones</h3>${p.tracking.length?`<ul class="timeline sec">${[...p.tracking].sort((a,b)=>String(a.at).localeCompare(String(b.at))).map(t=>`<li class="${t.milestone==='delivered'?'done':''}"><b>${esc(MILE[t.milestone]||t.milestone)}</b> · <span class="small">${fdt(t.at)}</span><div>${esc(t.note)}</div></li>`).join('')}</ul>`:'<p class="muted">No tracking events yet.</p>'}`}
+
+function poModal(p){
+ const T=[['specs','PO & Packing Specs'],['docs',`Documents (${p.documents.length})`],['quotes',`RFQ Quotes (${p.quotes.length})`],['track','Schedule & AWB Tracking']];
+ let body='';
+ if(ui.mtab==='specs')body=`<dl class="kv"><div><dt>Purchase group</dt><dd>${esc(p.purchaseGroup)}</dd></div><div><dt>Supplier</dt><dd>${esc(p.supplierName)}<div class="small">${esc(p.supplierEmail)}</div></dd></div><div><dt>Vendor code</dt><dd>${esc(p.vendorCode)}</dd></div><div><dt>Plant</dt><dd>${esc(p.plant)}</dd></div><div><dt>Route</dt><dd>${esc(p.originPort)} → ${esc(p.destinationPort)}</dd></div><div><dt>Incoterms</dt><dd>${esc(p.incoterms)}</dd></div><div><dt>Delivery date</dt><dd>${fdate(p.deliveryDate)}</dd></div><div><dt>Ariba PO</dt><dd>${esc(p.aribaPoRef||'—')}</dd></div></dl>
+ <div class="tbl sec"><table><thead><tr><th>Line</th><th>Material</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody>${p.items.map(i=>`<tr><td>${esc(i.line)}</td><td>${esc(i.material)}</td><td>${esc(i.desc)}</td><td class="r">${esc(i.qty)} ${esc(i.unit)}</td></tr>`).join('')}</tbody></table></div>
+ ${(p.emailLog||[]).length?`<h3 class="sec">Emails to supplier</h3><ul>${p.emailLog.map(e=>`<li>${fdt(e.at)} · to ${esc(e.to)} · “${esc(e.subject)}”</li>`).join('')}</ul>`:''}<h3 class="sec">Request note to supplier</h3>
+ ${p.status==='po_issued'?`<form data-form="note" class="sec"><input type="hidden" name="id" value="${esc(p.id)}"><textarea name="note" maxlength="1000">${esc(p.requestNote)}</textarea><button class="btn primary" style="margin-top:8px">Save & resend to supplier</button></form>`:`<div class="note sec">${esc(p.requestNote)}</div>`}
+ <h3 class="sec">Packaging & weight specs</h3><div class="sec">${specsKV(p.packing)}</div>`;
+ if(ui.mtab==='docs')body=`<h3>Required document checklist</h3><div class="sec">${checklist(p,REQ)}</div><h3 class="sec">Uploaded files</h3><div class="sec">${docsList(p,false)}</div>`;
+ if(ui.mtab==='quotes')body=`${p.invitedForwarderEmails.length?`<p class="small">Invited: ${p.invitedForwarderEmails.map(e=>esc(ffName(e))).join(', ')}</p>`:''}${quoteTable(p,p.status==='rfq_open')}`;
+ if(ui.mtab==='track')body=timeline(p);
+ return `<div class="overlay" data-act="closeBg"><div class="modal" role="dialog" aria-modal="true" aria-label="PO detail">
+ <div class="mhead"><h2>PO ${esc(p.poNumber)}</h2>${pill(p.status)}<button class="btn" data-act="close">Close</button></div>
+ <div class="small" style="padding:0 20px 10px">${esc(p.description)}</div>
+ <nav class="mtabs">${T.map(([k,l])=>`<button class="${ui.mtab===k?'on':''}" data-act="mtab" data-id="${k}">${esc(l)}</button>`).join('')}</nav>
+ <div class="mbody">${body}</div></div></div>`}
+
+function previewModal(){
+ const p=po(ui.preview.poId);const d=p?.documents.find(x=>x.id===ui.preview.docId);if(!d)return'';
+ let inner='';const data=d.dataUrl.split(',')[1]||'';
+ if(d.mime.startsWith('image/'))inner=`<img class="previmg" src="${esc(d.dataUrl)}" alt="${esc(d.name)}">`;
+ else if(/^text\/|csv|json/.test(d.mime)){let t='';try{t=unb64(data)}catch(e){t='Could not decode this file.'}inner=`<pre class="prev">${esc(t)}</pre><button class="btn" data-act="copyDoc">Copy contents</button>`}
+ else inner=`<div class="card empty"><b>${esc(d.name)}</b>This file type (${esc(d.mime||'unknown')}) can't be previewed inside this page. It's stored with the PO.</div>`;
+ return `<div class="overlay" data-act="closePrev" style="z-index:30"><div class="modal" role="dialog" aria-modal="true" aria-label="Document preview"><div class="mhead"><h2>${esc(d.type)}</h2><button class="btn" data-act="closePrevBtn">Close</button></div><div class="mbody"><p class="small">${esc(d.name)} · ${(d.size/1024).toFixed(1)} KB · uploaded by ${esc(d.uploadedBy)}</p>${inner}</div></div></div>`}
+
+/* ---------- supplier portal ---------- */
+function supLists(m){const L=db.pos.filter(p=>low(p.supplierEmail)===low(m.email));
+ const need=L.filter(p=>p.status==='po_issued'||(p.status==='docs_submitted'&&missingDocs(p).length&&!p.rfqReady)).sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt)));
+ const done=L.filter(p=>!need.includes(p)).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)));
+ return{need,done,unread:db.notifications.filter(n=>n.to===low(m.email)&&!n.read).length}}
+const SUPST={docs_submitted:'Submitted · under review',rfq_open:'Submitted · freight being arranged',ff_awarded:'Forwarder assigned · awaiting pickup',in_transit:'Picked up · in transit',delivered:'Delivered'};
+function supplierPortal(){
+ const m=me();if(!m)return `<main class="content"><div class="card empty sec"><b>Pick your company</b>Choose your supplier name under “Viewing as” at the top.</div></main>`;
+ const {need,done,unread}=supLists(m),t=ui.stab||'need';
+ if(t==='alerts')return `<main class="content">${ptitle('Alerts',`${unread} unread · ${m.companyName}`)}<div class="row sec" style="justify-content:flex-end"><button class="btn" data-act="readAll" data-id="${esc(low(m.email))}">Mark all read</button></div><div class="sec">${alertList(low(m.email))}</div></main>`;
+ if(t==='done')return `<main class="content">${ptitle('Submitted',`POs you have already sent shipment details for · ${m.companyName}`)}
+ ${done.length?`<div class="tbl sec"><table class="stack"><thead><tr><th>PO</th><th>Item</th><th>Packing sent</th><th>Status</th><th></th></tr></thead><tbody>${done.map(p=>{const k=p.packing;return `<tr><td><span class="mono">${esc(p.poNumber)}</span><div class="small">submitted ${k?fdate(k.submittedAt):'—'}</div></td><td>${esc(p.description)}<div class="small">${esc(p.items.map(i=>i.material+' × '+i.qty).join(', '))}</div></td><td>${k?`${esc(k.units)} ${esc(k.mode)} · ${esc(k.grossKg)} kg · ${esc(k.cbm)} CBM`:'—'}<div class="small">${p.documents.filter(d=>d.uploadedBy==='supplier').length} document(s)</div></td><td><span class="pill s-${esc(p.status)}">${esc(SUPST[p.status]||p.status)}</span>${p.shipment?.awb?`<div class="small">AWB ${esc(p.shipment.awb)}</div>`:''}</td><td><button class="btn small" data-act="supView" data-id="${esc(p.id)}">${ui.openPo===p.id?'Hide':'View'}</button></td></tr>${ui.openPo===p.id?`<tr><td colspan="5" style="background:var(--bg)">${supplierCard(p)}</td></tr>`:''}`}).join('')}</tbody></table></div>`:`<div class="card empty sec"><b>Nothing submitted yet</b>POs move here once you send packing details and documents.</div>`}</main>`;
+ return `<main class="content">${ptitle('Action needed',need.length?`${need.length} PO(s) need your packing details or documents`:`You're all caught up · ${m.companyName}`)}
+ ${need.length?need.map(p=>supplierCard(p)).join(''):`<div class="card empty sec"><b>Nothing to do right now</b>When the Logistics Center requests shipment details for a PO, it appears here.</div>`}</main>`}
+function supplierCard(p){
+ const editable=['po_issued','docs_submitted'].includes(p.status);const open=ui.openPo===p.id||((p.status==='po_issued'||(ui.stab||'need')==='need')&&ui.openPo==null&&editable);
+ const k={coo:cooOf(p.originPort),originPort:p.originPort,destPort:p.destinationPort,...(p.packing||{mode:'boxes',qtyAsPerPo:p.items.reduce((a,i)=>a+num(i.qty),0)})};
+ const f=(n,l,t='number',x='')=>`<label>${l}<input name="${n}" type="${t}" ${t==='number'?'min="0" step="any"':''} value="${esc(k[n]??'')}" data-calc ${x}></label>`;
+ return `<div class="card pocard sec"><div class="hd"><div><h2>PO ${esc(p.poNumber)}</h2><div class="small">${esc(p.description)} · ${esc(p.originPort)} → ${esc(p.destinationPort)} · deliver by ${fdate(p.deliveryDate)}</div></div>${pill(p.status)}</div>
+ ${p.status==='po_issued'?`<div class="note sec"><b>Request from Logistics Center</b><div style="white-space:pre-wrap">${esc(p.requestNote)}</div></div>`:p.status==='docs_submitted'&&missingDocs(p).length?`<div class="note sec"><b>Documents still missing:</b> ${esc(missingDocs(p).join(', '))}. Upload them below — no need to resubmit the packing details.</div>`:''}
+ <div class="tbl sec"><table><thead><tr><th>Line</th><th>Material</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody>${p.items.map(i=>`<tr><td>${esc(i.line)}</td><td>${esc(i.material)}</td><td>${esc(i.desc)}</td><td class="r">${esc(i.qty)} ${esc(i.unit)}</td></tr>`).join('')}</tbody></table></div>
+ ${editable?`<div class="row sec"><button class="btn ${open?'':'primary'}" data-act="togglePo" data-id="${esc(p.id)}">${open?'Hide form':p.packing?'Revise packing & documents':'Fill packing & documents'}</button></div>`:''}
+ ${editable&&open?`<form data-form="pack" class="sec" data-id="${esc(p.id)}">
+ <h3>Origin & route</h3>
+ <div class="form sec" style="margin-bottom:18px">${f('coo','Country of origin*','text','required list="cool" maxlength="60"')}${f('originPort','Origin port (loading)*','text','required list="portl" maxlength="60"')}${f('destPort','Destination port*','text','required list="portl" maxlength="60"')}
+ <datalist id="cool">${[...new Set(Object.values(COO))].map(c=>`<option value="${esc(c)}">`).join('')}</datalist><datalist id="portl">${[...new Set(db.pos.flatMap(x=>[x.originPort,x.destinationPort]).filter(Boolean))].sort().map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
+ <h3>Packaging & dimensions</h3>
+ <div class="seg" role="radiogroup" aria-label="Packaging mode"><label><input type="radio" name="mode" value="boxes" ${k.mode!=='cartons'?'checked':''} data-calc>Boxes</label><label><input type="radio" name="mode" value="cartons" ${k.mode==='cartons'?'checked':''} data-calc>Cartons</label></div>
+ <div class="form sec">${f('qtyAsPerPo','Quantity as per PO*','number','required')}${f('units','No. of boxes / cartons*','number','required')}${f('cratesPerUnit','No. of crates per box / carton')}
+ <label>Total crates<div class="calc" data-out="crates">—</div></label>
+ <div><label>Master cargo LBH (cm)</label><div class="lbh">${['mL','mW','mH'].map((n,i)=>`<input name="${n}" type="number" min="0" step="any" aria-label="Master ${['length','width','height'][i]}" placeholder="${'LBH'[i]}" value="${esc(k[n]??'')}" data-calc>`).join('')}</div></div>
+ <div><label>Per box / carton LBH (cm)*</label><div class="lbh">${['uL','uW','uH'].map((n,i)=>`<input name="${n}" type="number" min="0" step="any" required aria-label="Per unit ${['length','width','height'][i]}" placeholder="${'LBH'[i]}" value="${esc(k[n]??'')}" data-calc>`).join('')}</div></div>
+ ${f('netKg','Net weight (kg)*','number','required')}${f('grossKg','Gross weight (kg)*','number','required')}${f('perCountKg','Weight per count (kg)')}
+ <label>Total CBM (auto)<div class="calc" data-out="cbm">—</div></label>
+ ${f('pickupReadyDate','Pickup ready date*','date','required')}
+ <label class="full">Supplier remarks<textarea name="remarks" maxlength="500">${esc(k.remarks||'')}</textarea></label></div>
+ <h3 class="sec">Document checklist</h3><p class="small">Max ${MAXFILE/1024} KB per file. Commercial Invoice and Packing List are required.</p>
+ ${REQ.map(t=>{const ds=p.documents.filter(d=>d.type===t);return `<div class="docrow"><div class="nm">${ds.length?'<span class="ok">✓</span>':'<span class="bad">○</span>'} <b>${esc(t)}</b>${MUST.includes(t)?' <span class="small">(required)</span>':''}${ds.map(d=>`<div class="small">${esc(d.name)} <button type="button" class="btn small" data-act="preview" data-id="${esc(p.id)}" data-d="${esc(d.id)}">Preview</button> <button type="button" class="btn small danger" data-act="delDoc" data-id="${esc(p.id)}" data-d="${esc(d.id)}">Remove</button></div>`).join('')}</div>
+ <label class="btn small" style="color:var(--ink);display:inline-flex;align-items:center;margin:0">Upload<input type="file" data-upload="${esc(t)}" data-id="${esc(p.id)}" style="position:absolute;opacity:0;width:1px;height:1px"></label></div>`}).join('')}
+ <div class="row sec"><button class="btn primary">${p.packing?'Resubmit specs & documents':'Submit specs & documents'}</button><span class="small">${p.autoDispatchRfq?'RFQ goes to forwarders automatically on submit.':'Logistics Center reviews, then sends the RFQ.'}</span></div></form>`:''}
+ ${!editable||!open?`${p.packing?`<h3 class="sec">Your submitted specs</h3><div class="sec">${specsKV(p.packing)}</div>`:''}${p.documents.length?`<h3 class="sec">Documents</h3>${docsList(p,false)}`:''}${p.shipment?`<h3 class="sec">Shipment</h3><div class="sec">${timeline(p)}</div>`:''}`:''}</div>`}
+
+/* ---------- forwarder portal ---------- */
+function ffLists(m){const e=low(m.email);const inv=p=>p.invitedForwarderEmails.map(low).includes(e)&&!['po_issued','docs_submitted'].includes(p.status);
+ const mine=p=>p.quotes.find(q=>low(q.ffEmail)===e);
+ return{e,toQuote:db.pos.filter(p=>p.status==='rfq_open'&&inv(p)&&!mine(p)),quoted:db.pos.filter(p=>mine(p)),
+  ships:db.pos.filter(p=>low(p.awardedForwarderEmail)===e&&['ff_awarded','in_transit'].includes(p.status)),done:db.pos.filter(p=>low(p.awardedForwarderEmail)===e&&p.status==='delivered'),
+  unread:db.notifications.filter(n=>n.to===e&&!n.read).length,mine}}
+function ffPortal(){
+ const m=me();if(!m)return `<main class="content"><div class="card empty sec"><b>Pick your company</b>Choose your forwarder name under “Viewing as” at the top.</div></main>`;
+ const L=ffLists(m),e=L.e,t=ui.ftab||'quote';
+ if(t==='alerts')return `<main class="content">${ptitle('Alerts',`${L.unread} unread · ${m.companyName}`)}<div class="row sec" style="justify-content:flex-end"><button class="btn" data-act="readAll" data-id="${esc(e)}">Mark all read</button></div><div class="sec">${alertList(e)}</div></main>`;
+ if(t==='quoted')return `<main class="content">${ptitle('My quotes',`Quotes you have submitted and their outcome · ${m.companyName}`)}
+  <div class="tbl sec"><table class="stack"><thead><tr><th>PO</th><th>Route · cargo</th><th class="r">Your quote</th><th class="r">Transit</th><th>Outcome</th><th></th></tr></thead><tbody>${L.quoted.map(p=>{const q=L.mine(p);const out=q.status==='awarded'?'<span class="pill s-delivered">Awarded</span>':q.status==='not_selected'?'<span class="pill">Not selected</span>':p.nfa?'<span class="pill s-po_issued">Under approval</span>':'<span class="pill s-rfq_open">Open · can revise</span>';
+  return `<tr><td><span class="mono">${esc(p.poNumber)}</span><div class="small">${esc(p.description)}</div></td><td>${esc(q.route)}<div class="small">${p.packing?`${esc(p.packing.grossKg)} kg · ${esc(p.packing.cbm)} CBM`:''}</div></td><td class="r"><b>${usd(q.totalUsd)}</b><div class="small">${fdate(q.at)}</div></td><td class="r">${esc(q.transitDays)} days</td><td>${out}</td><td>${p.status==='rfq_open'&&!q.status.match(/awarded|not_selected/)?`<button class="btn small" data-act="ffRevise" data-id="${esc(p.id)}">${ui.openPo===p.id?'Hide':'Revise'}</button>`:''}</td></tr>${ui.openPo===p.id?`<tr><td colspan="6" style="background:var(--bg)">${rfqCard(p,e)}</td></tr>`:''}`}).join('')}</tbody></table></div></main>`;
+ if(t==='ships')return `<main class="content">${ptitle('Shipments',`Awarded to you · update AWB, pickup and milestones · ${m.companyName}`)}
+  <h2 class="sec">In progress (${L.ships.length})</h2>${L.ships.length?L.ships.map(p=>execCard(p)).join(''):'<p class="muted">Nothing in progress.</p>'}
+  <h2 class="sec">Delivered (${L.done.length})</h2>${L.done.length?`<div class="tbl sec"><table class="stack"><thead><tr><th>PO</th><th>AWB</th><th>Route</th><th>Delivered</th><th></th></tr></thead><tbody>${L.done.map(p=>`<tr><td><span class="mono">${esc(p.poNumber)}</span><div class="small">${esc(p.description)}</div></td><td class="mono">${esc(p.shipment?.awb)}</td><td>${esc(p.originPort)} → ${esc(p.destinationPort)}</td><td>${fdt(p.shipment?.actualDelivery)}</td><td><button class="btn small" data-act="ffRevise" data-id="${esc(p.id)}">${ui.openPo===p.id?'Hide':'View'}</button></td></tr>${ui.openPo===p.id?`<tr><td colspan="5" style="background:var(--bg)">${execCard(p)}</td></tr>`:''}`).join('')}</tbody></table></div>`:'<p class="muted">No delivered shipments yet.</p>'}</main>`;
+ return `<main class="content">${ptitle('RFQs to quote',L.toQuote.length?`${L.toQuote.length} open RFQ(s) waiting for your price · ${m.companyName}`:`No open RFQs right now · ${m.companyName}`)}
+ ${L.toQuote.length?L.toQuote.map(p=>rfqCard(p,e)).join(''):'<div class="card empty sec"><b>Nothing to quote</b>New RFQs from the Logistics Center appear here.</div>'}</main>`}
+function cargoSummary(p){const k=p.packing;return k?`<dl class="kv"><div><dt>Packaging</dt><dd>${esc(k.units)} ${esc(k.mode)}${num(k.totalCrates)?` · ${esc(k.totalCrates)} crates`:''}</dd></div><div><dt>Per-unit LBH (cm)</dt><dd>${esc(k.uL)} × ${esc(k.uW)} × ${esc(k.uH)}</dd></div><div><dt>Master LBH (cm)</dt><dd>${esc(k.mL)} × ${esc(k.mW)} × ${esc(k.mH)}</dd></div><div><dt>Gross / net</dt><dd>${esc(k.grossKg)} / ${esc(k.netKg)} kg</dd></div><div><dt>Total CBM</dt><dd>${esc(k.cbm)}</dd></div><div><dt>Pickup ready</dt><dd>${fdate(k.pickupReadyDate)}</dd></div><div><dt>Route</dt><dd>${esc(k.originPort||p.originPort)} → ${esc(k.destPort||p.destinationPort)}</dd></div><div><dt>Country of origin</dt><dd>${esc(k.coo||'—')}</dd></div><div><dt>Incoterms</dt><dd>${esc(p.incoterms)}</dd></div></dl>`:''}
+function rfqCard(p,e){
+ const q=p.quotes.find(x=>low(x.ffEmail)===e)||{};const v=k=>esc(q[k]??'');
+ return `<div class="card sec"><div class="hd row" style="justify-content:space-between"><div><h3>PO ${esc(p.poNumber)} · ${esc(p.description)}</h3><div class="small">${esc(p.supplierName)} · ${esc(p.purchaseGroup)}</div></div>${pill(p.status)}</div>
+ <div class="sec">${cargoSummary(p)}</div><h3 class="sec">Supplier documents</h3>${docsList(p,false)}
+ <form data-form="quote" data-id="${esc(p.id)}" class="form sec"><h3 class="full">${q.id?'Revise your quote':'Submit your quote'}</h3>
+ <label>Base freight (USD)*<input name="baseUsd" type="number" min="0" step="any" required value="${v('baseUsd')}" data-calc></label>
+ <label>Surcharges (USD)<input name="surchargeUsd" type="number" min="0" step="any" value="${v('surchargeUsd')}" data-calc></label>
+ <label>Total (USD, auto)<div class="calc" data-out="total">${q.id?usd(q.totalUsd):'$0'}</div></label>
+ <label>Transit days*<input name="transitDays" type="number" min="1" step="1" required value="${v('transitDays')}"></label>
+ <label>Carrier name*<input name="carrier" required maxlength="60" value="${v('carrier')}"></label>
+ <label>Route summary*<input name="route" required maxlength="100" placeholder="e.g. ICN → DEL → GAU" value="${v('route')}"></label>
+ <label>Valid until*<input name="validUntil" type="date" required value="${v('validUntil')||day(14)}"></label>
+ <label class="full">Remarks<textarea name="remarks" maxlength="500">${v('remarks')}</textarea></label>
+ <div class="full"><button class="btn primary">${q.id?'Update quote':'Submit quote'}</button></div></form></div>`}
+function execCard(p){
+ const s=p.shipment||{originPort:p.originPort,destinationPort:p.destinationPort,milestone:'awaiting_pickup'};const v=k=>esc(s[k]??'');const locked=p.status==='delivered';const dis=locked?'disabled':'';
+ const chk=awbCheck(s.awb);
+ return `<div class="card sec"><div class="hd row" style="justify-content:space-between"><div><h3>PO ${esc(p.poNumber)} · ${esc(p.description)}</h3><div class="small">Ariba ${esc(p.aribaPoRef||'—')} · ${esc(p.supplierName)}</div></div>${pill(p.status)}</div>
+ <div class="sec">${cargoSummary(p)}</div>
+ ${locked?`<div class="note sec">Delivered — this shipment is locked. Contact the Logistics Center for corrections.</div><div class="sec">${timeline(p)}</div><h3 class="sec">Documents</h3>${docsList(p,false)}`:`
+ <form data-form="ship" data-id="${esc(p.id)}" class="form sec"><h3 class="full">AWB validation & shipment schedule</h3>
+ <label class="full">AWB number* (XXX-XXXXXXXX)<input name="awb" required value="${v('awb')}" data-awb placeholder="e.g. 020-84920146" autocomplete="off"><div class="awbres ${chk.ok?'ok':chk.empty?'small':'bad'}" data-out="awb">${esc(chk.msg)}</div></label>
+ <label>Carrier name*<input name="carrier" required value="${v('carrier')}" data-carrier></label>
+ <label>Pickup time<input name="pickupTime" type="datetime-local" value="${v('pickupTime')}"></label>
+ <label>Pickup location<input name="pickupLocation" value="${v('pickupLocation')}"></label>
+ <label>Origin port<input name="originPort" value="${v('originPort')}"></label><label>Destination port<input name="destinationPort" value="${v('destinationPort')}"></label>
+ <label>Estimated departure<input name="etd" type="datetime-local" value="${v('etd')}"></label><label>Estimated arrival<input name="eta" type="datetime-local" value="${v('eta')}"></label>
+ <label>Actual delivery time<input name="actualDelivery" type="datetime-local" value="${v('actualDelivery')}"></label>
+ <label>Milestone*<select name="milestone">${Object.entries(MILE).map(([k,l])=>`<option value="${k}" ${s.milestone===k?'selected':''}>${l}</option>`).join('')}</select></label>
+ <label class="full">Tracking note<textarea name="note" maxlength="500" placeholder="What happened at this step"></textarea></label>
+ <div class="full"><h3>Shipment documents</h3>${['AWB Receipt','Proof of Delivery'].map(t=>{const ds=p.documents.filter(d=>d.type===t);return `<div class="docrow"><div class="nm">${ds.length?'<span class="ok">✓</span>':'<span class="bad">○</span>'} <b>${t}</b>${ds.map(d=>`<div class="small">${esc(d.name)} <button type="button" class="btn small" data-act="preview" data-id="${esc(p.id)}" data-d="${esc(d.id)}">Preview</button></div>`).join('')}</div><label class="btn small" style="color:var(--ink);display:inline-flex;align-items:center;margin:0">Upload<input type="file" data-upload="${t}" data-id="${esc(p.id)}" data-ff="1" style="position:absolute;opacity:0;width:1px;height:1px"></label></div>`}).join('')}</div>
+ <div class="full row"><button class="btn primary">Save update & notify stakeholders</button><span class="small">Setting “Delivered” notifies everyone and locks this shipment.</span></div></form>
+ <div class="sec">${timeline(p)}</div><details class="sec"><summary><b>Supplier documents (${p.documents.filter(d=>d.uploadedBy==='supplier').length})</b></summary>${docsList({...p,documents:p.documents.filter(d=>d.uploadedBy==='supplier')},false)}</details>`}</div>`}
+
+/* ---------- render ---------- */
+function render(){
+ if(ui.role!=='logistics'&&ui.as&&!me())ui.as='';
+ $('#app').innerHTML=`<div class="app">${rail()}<div class="mainw">${topbar()}${ui.role==='logistics'?logistics():ui.role==='supplier'?supplierPortal():ffPortal()}</div></div>`;
+ renderModal();refreshCalcs();saveUi()}
+function renderModal(){
+ let m='';if(ui.modal?.kind==='import')m=importModal();else if(ui.modal?.kind==='mail')m=mailModal();else if(ui.modal?.kind==='feed')m=feedModal(ui.modal.n);else if(ui.modal?.kind==='pickff')m=pickModal();else if(ui.modal?.kind==='issue')m=issueModal(ui.modal.cat);else if(ui.modal?.kind==='po'){const p=po(ui.modal.id);if(p)m=poModal(p);else ui.modal=null}
+ if(ui.preview)m+=previewModal();
+ $('#modal').innerHTML=m;document.body.style.overflow=m?'hidden':''}
+function refreshCalcs(){
+ document.querySelectorAll('form[data-form=pack]').forEach(f=>{const g=n=>f.elements[n]?.value;const p={units:g('units'),uL:g('uL'),uW:g('uW'),uH:g('uH'),mL:g('mL'),mW:g('mW'),mH:g('mH')};
+  f.querySelector('[data-out=crates]').textContent=String(num(g('units'))*num(g('cratesPerUnit')));f.querySelector('[data-out=cbm]').textContent=cbmOf(p)+' m³'});
+ document.querySelectorAll('form[data-form=quote]').forEach(f=>{f.querySelector('[data-out=total]').textContent=usd(num(f.elements.baseUsd.value)+num(f.elements.surchargeUsd.value))})}
+
+/* ---------- actions ---------- */
+function touch(p){p.updatedAt=nowIso()}
+function openIssue(n){
+ const c=db.catalog.find(x=>x.poNumber===n);
+ if(!c){toast(`PO ${n} isn't in the SAP PO Catalog. Add it on the SAP PO Sync tab or load sample data (try 4500012101).`);return}
+ const ex=db.pos.find(p=>p.poNumber===n);if(ex){ui.modal={kind:'po',id:ex.id};ui.mtab='specs';renderModal();toast(`PO ${n} is already issued — opened it.`);return}
+ ui.modal={kind:'issue',cat:c};renderModal()}
+function award(p,qid){
+ if(p.nfa&&p.nfa.status!=='approved'){toast('Approve the NFA first.');return}
+ const w=p.quotes.find(q=>q.id===qid);if(!w)return;p.awardedAt=nowIso();
+ p.quotes.forEach(q=>q.status=q.id===qid?'awarded':'not_selected');
+ p.awardedForwarderEmail=low(w.ffEmail);p.awardedForwarderCompany=w.ffCompany;
+ p.aribaPoRef=`ARIBA-PO-${day(0).replace(/-/g,'')}-${String(Math.floor(1000+Math.random()*9000))}`;p.aribaSyncStatus='requested';
+ p.status='ff_awarded';p.shipment={awb:'',carrier:w.carrier,pickupTime:'',pickupLocation:'',originPort:p.originPort,destinationPort:p.destinationPort,etd:'',eta:'',actualDelivery:'',milestone:'awaiting_pickup',note:''};touch(p);
+ notify('logistics','Ariba PO requested',`${w.ffCompany} awarded for PO ${p.poNumber} at ${usd(w.totalUsd)}. Ref ${p.aribaPoRef}.`,p.id);
+ notify(w.ffEmail,'You have been awarded',`PO ${p.poNumber} awarded at ${usd(w.totalUsd)}. Please add the AWB and pickup schedule.`,p.id);
+ p.quotes.filter(q=>q.id!==qid).forEach(q=>notify(q.ffEmail,'RFQ closed',`PO ${p.poNumber} was awarded to another forwarder. Thank you for quoting.`,p.id));
+ notify(p.supplierEmail,'Forwarder assigned',`${w.ffCompany} will collect PO ${p.poNumber}.`,p.id);
+ save();render();toast(`Awarded to ${w.ffCompany}. Ariba reference ${p.aribaPoRef} queued (Ariba not connected in this build).`)}
+function dispatchRfq(p,emails){
+ p.invitedForwarderEmails=[...new Set(emails.map(low))];p.status='rfq_open';touch(p);
+ p.invitedForwarderEmails.forEach(e=>notify(e,'New RFQ open',`PO ${p.poNumber} — ${p.packing?`${p.packing.units} ${p.packing.mode}, ${p.packing.grossKg} kg, ${p.packing.cbm} CBM`:''} ${p.originPort} → ${p.destinationPort}. Please quote.`,p.id))}
+function parseCsv(t){const rows=[];let row=[],cur='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}else if(ch==='"')q=true;else if(ch===','){row.push(cur);cur=''}else if(ch==='\n'||ch==='\r'){if(ch==='\r'&&t[i+1]==='\n')i++;row.push(cur);rows.push(row);row=[];cur=''}else cur+=ch}if(cur||row.length){row.push(cur);rows.push(row)}return rows.filter(r=>r.some(c=>c.trim()))}
+function importCsv(text){
+ const rows=parseCsv(text);if(rows.length<2){toast('CSV needs a header row and at least one data row.');return}
+ const hd=rows[0].map(x=>x.trim());const need=['poNumber','supplierName','supplierEmail'];const miss=need.filter(n=>!hd.includes(n));if(miss.length){toast('CSV is missing column(s): '+miss.join(', '));return}
+ let add=0,lines=0,bad=0;
+ rows.slice(1).forEach(r=>{const o={};hd.forEach((k,i)=>o[k]=(r[i]||'').trim());if(!o.poNumber||!o.supplierEmail){bad++;return}
+  let c=db.catalog.find(x=>x.poNumber===o.poNumber);
+  if(!c){c={id:o.poNumber,poNumber:o.poNumber,pgCode:PG[o.pgCode]?o.pgCode:'',mgName:o.materialGroup||'',poDate:o.poDate||loc(new Date()),purchaseGroup:o.purchaseGroup==='Material'||/^M/.test(o.pgCode||'')?'Material':'Equipment',description:o.description||'',supplierName:o.supplierName,supplierEmail:low(o.supplierEmail),vendorCode:o.vendorCode||'',plant:o.plant||'',originPort:o.originPort||'',destinationPort:o.destinationPort||'',incoterms:o.incoterms||'',deliveryDate:o.deliveryDate||'',items:[],source:'csv'};db.catalog.push(c);add++}
+  if(o.material||o.quantity){c.items.push({line:(c.items.length+1)*10,material:o.material||'',desc:o.description||'',qty:num(o.quantity),unit:o.unit||'EA'});lines++}});
+ ui.modal=null;ui.tab='pos';ui.pf={pg:'',mg:'',sup:'',dest:'',q:'',st:'new'};ui.psel=[];save();render();toast(`Added ${add} PO(s) and ${lines} line item(s) to the list${bad?`, skipped ${bad} incomplete row(s)`:''}. They show under Not requested.`)}
+const SAMPLE_CSV=`poNumber,pgCode,materialGroup,purchaseGroup,description,supplierName,supplierEmail,vendorCode,plant,originPort,destinationPort,incoterms,deliveryDate,material,quantity,unit
+4500012201,E10,Bonder spares,Equipment,Flip-chip bonder nozzle set,Kestrel Precision Tools,dispatch@kestrel-tools.example,V100231,BLR – Bangalore plant Karnataka,Frankfurt (FRA),Bengaluru (BLR),FCA,${day(40)},EQ-FC-0102,10,EA
+4500012201,E10,Bonder spares,Equipment,Flip-chip bonder heater block,Kestrel Precision Tools,dispatch@kestrel-tools.example,V100231,BLR – Bangalore plant Karnataka,Frankfurt (FRA),Bengaluru (BLR),FCA,${day(40)},EQ-FC-0107,2,EA
+4500012202,M10,Packing material,Material,Carrier tape 12 mm,Harbourline Packaging,logistics@harbourline-pack.example,V200342,AMD – Ahmedabad plant Gujarat,Hong Kong (HKG),Ahmedabad (AMD),FCA,${day(30)},MT-PKG-1201,400,RL`;
+
+const ACT={
+ reset:()=>{if(ui.confirm!=='reset'){ui.confirm='reset';render();setTimeout(()=>{if(ui.confirm==='reset'){ui.confirm='';render()}},4000);return}ui.confirm='';db=blank();db.ver=15;ui.modal=null;ui.preview=null;ui.role='logistics';ui.as='';seed(true);toast('Reset done — fresh sample data loaded.')},
+ tab:b=>{ui.tab=b.dataset.id;ui.editId=null;ui.editType=null;render()},
+ status:b=>{ui.status=b.dataset.id;render()},
+ open:b=>{ui.modal={kind:'po',id:b.dataset.id};ui.mtab='specs';renderModal()},
+ mtab:b=>{ui.mtab=b.dataset.id;renderModal()},
+ close:()=>{ui.modal=null;renderModal()},
+ closeBg:(b,e)=>{if(e.target===b){ui.modal=null;renderModal()}},
+ closePrev:(b,e)=>{if(e.target===b){ui.preview=null;renderModal()}},
+ closePrevBtn:()=>{ui.preview=null;renderModal()},
+ preview:b=>{ui.preview={poId:b.dataset.id,docId:b.dataset.d};renderModal()},
+ copyDoc:()=>{const t=document.querySelector('pre.prev')?.textContent||'';navigator.clipboard?.writeText(t).then(()=>toast('Copied.'),()=>toast('Copy was blocked — select the text and copy it.'))},
+ delDoc:b=>{const p=po(b.dataset.id);if(!p)return;p.documents=p.documents.filter(d=>d.id!==b.dataset.d);touch(p);save();render()},
+ issueCat:b=>openMail([b.dataset.id]),
+ feedOpen:b=>{const r=feedRows().find(x=>x.poNumber===b.dataset.id);if(!r)return;if(r.po&&r.po.status!=='po_issued'){ui.modal={kind:'po',id:r.po.id};ui.mtab='specs'}else ui.modal={kind:'feed',n:r.poNumber};renderModal()},
+ mailOne:b=>openMail([b.dataset.id]),
+ mailSel:()=>openMail([...ui.psel]),
+ mailCopy:()=>{const r=feedRows().find(x=>x.poNumber===ui.modal.nums[0]);const t=mailFill(ui.mailT.subject,r)+'\n\n'+mailFill(ui.mailT.body,r);navigator.clipboard?.writeText(t).then(()=>toast('Email copied — paste it into Outlook.'),()=>toast('Copy was blocked — select the preview text and copy it.'))},
+ psel:b=>{const n=b.dataset.id;ui.psel=b.checked?[...new Set([...ui.psel,n])]:ui.psel.filter(x=>x!==n);refreshPos()},
+ pselAll:b=>{ui.psel=b.checked?poRows().filter(r=>['new','po_issued'].includes(shipOf(r))).map(r=>r.poNumber):[];refreshPos()},
+ pfSt:b=>{ui.pf.st=b.dataset.id;ui.psel=[];render()},
+ pfClear:()=>{ui.pf={pg:'',mg:'',sup:'',dest:'',q:'',st:''};ui.psel=[];render()},
+ goNfa:()=>{ui.tab='rfq';ui.qf.v='nfa';render();window.scrollTo(0,0)},
+ goTab:b=>{ui.tab=b.dataset.id;ui.modal=null;render();window.scrollTo(0,0)},
+ reqDocs:b=>{const p=po(b.dataset.id);if(!p)return;const m=missingDocs(p);if(!m.length){toast('No documents missing.');return}
+  const subj=`Missing documents – PO ${p.poNumber}`;notify(p.supplierEmail,subj,`Please upload: ${m.join(', ')} for PO ${p.poNumber} in the Supplier Portal.`,p.id);
+  p.emailLog=[...(p.emailLog||[]),{to:low(p.supplierEmail),subject:subj,at:nowIso()}];p.docChase=nowIso();touch(p);save();refreshResp();toast(`Asked ${p.supplierName} for: ${m.join(', ')}.`)},
+ markReady:b=>{const p=po(b.dataset.id);if(!p)return;p.rfqReady=true;touch(p);save();render();toast(`PO ${p.poNumber} moved to Ready for RFQ.`)},
+ ftab:b=>{ui.ftab=b.dataset.id;ui.openPo=null;render();window.scrollTo(0,0)},
+ ffRevise:b=>{ui.openPo=ui.openPo===b.dataset.id?'':b.dataset.id;render()},
+ openImport:()=>{ui.impTab='csv';ui.modal={kind:'import'};renderModal()},
+ impTab:b=>{ui.impTab=b.dataset.id;renderModal()},
+ stab:b=>{ui.stab=b.dataset.id;ui.openPo=null;render();window.scrollTo(0,0)},
+ supView:b=>{ui.openPo=ui.openPo===b.dataset.id?'':b.dataset.id;render()},
+ execCopy:()=>{navigator.clipboard?.writeText(execSummary()).then(()=>toast('Exec summary copied — paste it into Teams or email.'),()=>toast('Copy was blocked by the browser.'))},
+ qView:b=>{ui.qf.v=b.dataset.id;render()},
+ nfaPick:b=>{const p=po(b.dataset.id);if(!p)return;const qs=[...p.quotes].sort((a,b)=>a.totalUsd-b.totalUsd),w=p.quotes.find(q=>q.id===b.dataset.q),fa=Math.min(...qs.map(q=>q.transitDays));
+  const rank=qs.indexOf(w)+1;const j=rank===1?`L1 – lowest landed freight cost among ${qs.length} quotes${w.transitDays===fa?', also fastest transit':''}.`:w.transitDays===fa?`Fastest transit (${w.transitDays} days) to meet the required delivery date; ${usd(w.totalUsd-qs[0].totalUsd)} above L1.`:`L${rank} selected – reason: `;
+  p.nfa={quoteId:w.id,selectedAt:nowIso(),justification:j,status:'ready'};touch(p);notify('logistics','Ready for NFA',`PO ${p.poNumber}: ${w.ffCompany} selected at ${usd(w.totalUsd)}.`,p.id);
+  ui.qf.v='nfa';ui.modal=null;save();render();toast(`PO ${p.poNumber} moved to Ready for NFA with ${w.ffCompany}.`)},
+ nfaApprove:b=>{const p=po(b.dataset.id);if(!p?.nfa)return;p.nfa.status='approved';p.nfa.approvedAt=nowIso();touch(p);save();render();toast(`NFA approved for PO ${p.poNumber}. You can now ask for the Ariba PO.`)},
+ nfaBack:b=>{const p=po(b.dataset.id);if(!p)return;delete p.nfa;touch(p);ui.qf.v='open';save();render();toast(`PO ${p.poNumber} is back in To compare.`)},
+ nfaCopy:b=>{const p=po(b.dataset.id);if(!p)return;navigator.clipboard?.writeText(nfaText(p)).then(()=>toast('NFA note copied — paste it into your approval mail or form.'),()=>toast('Copy was blocked by the browser.'))},
+ award:b=>{const p=po(b.dataset.id);if(p)award(p,b.dataset.q)},
+ askAll:()=>{const L=db.pos.filter(p=>p.status==='po_issued');if(!L.length){toast('No POs are waiting on suppliers (status PO Issued).');return}
+  L.forEach(p=>{notify(p.supplierEmail,'Reminder: packing details & documents needed',p.requestNote,p.id);touch(p)});
+  notify('logistics','Suppliers reminded',`Asked ${new Set(L.map(p=>low(p.supplierEmail))).size} supplier(s) for LBH & documents on ${L.length} PO(s).`,'');save();render();toast(`Reminder sent for ${L.length} PO(s).`)},
+ rfqAll:()=>{const L=db.pos.filter(p=>p.status==='docs_submitted');const F=ffs().map(f=>f.email);
+  if(!L.length){toast('No POs are in Docs Submitted status.');return}if(!F.length){toast('FF Master is empty — add forwarders first.');return}
+  L.forEach(p=>dispatchRfq(p,F));notify('logistics','RFQs dispatched',`${L.length} PO(s) sent to ${F.length} forwarder(s).`,'');save();ui.tab='rfq';render();toast(`RFQ sent for ${L.length} PO(s) to ${F.length} forwarders.`)},
+ edit:b=>{ui.editId=b.dataset.id;ui.editType=b.dataset.t;render();document.querySelector('form[data-form]')?.scrollIntoView({behavior:'smooth'})},
+ cancelEdit:()=>{ui.editId=null;ui.editType=null;render()},
+ del:b=>{const id=b.dataset.id;if(ui.confirm!=='del:'+id){ui.confirm='del:'+id;render();return}ui.confirm='';db.stakeholders=db.stakeholders.filter(s=>s.id!==id);save();render();toast('Deleted.')},
+ copyUrl:()=>{const v=$('#portalUrl').value;navigator.clipboard?.writeText(v).then(()=>toast('Link copied.'),()=>{$('#portalUrl').select();toast('Select the link and copy it.')})},
+ alert:b=>{const n=db.notifications.find(x=>x.id===b.dataset.id);if(!n)return;n.read=true;save();if(n.poId&&po(n.poId)){if(ui.role==='logistics'){ui.modal={kind:'po',id:n.poId};ui.mtab='specs'}else{ui.openPo=n.poId;if(ui.role==='supplier'){const m=me();ui.stab=m&&supLists(m).need.some(x=>x.id===n.poId)?'need':'done'}if(ui.role==='forwarder'){const m=me(),L=m&&ffLists(m);ui.ftab=L?(L.ships.concat(L.done).some(x=>x.id===n.poId)?'ships':L.toQuote.some(x=>x.id===n.poId)?'quote':'quoted'):'quote'}}}render()},
+ readAll:b=>{db.notifications.forEach(n=>{if(n.to===b.dataset.id)n.read=true});save();render()},
+ togglePo:b=>{const id=b.dataset.id;const p=po(id);const isOpen=ui.openPo===id||(p?.status==='po_issued'&&ui.openPo==null);ui.openPo=isOpen?'':id;render()},
+ rsel:b=>{const id=b.dataset.id;ui.rsel=b.checked?[...new Set([...ui.rsel,id])]:ui.rsel.filter(x=>x!==id);refreshResp()},
+ rselAll:b=>{ui.rsel=b.checked?respRows().map(p=>p.id):[];refreshResp()},
+ rffT:b=>{const e=b.dataset.id;ui.rff=ui.rff.includes(e)?ui.rff.filter(x=>x!==e):[...ui.rff,e];refreshResp()},
+ rffAll:b=>{ui.rff=b.dataset.v?ffs().map(f=>low(f.email)):[];refreshResp()},
+ rClear:()=>{ui.rf={q:'',sup:'',grp:'All',docs:'',st:ui.rf.st};ui.rsel=[];render()},
+ rView:b=>{ui.rf={q:'',sup:'',grp:'All',docs:'',st:b.dataset.id};ui.rsel=[];render()},
+ rfqOne:b=>openPick([b.dataset.id]),
+ rfqSel:()=>{if(ui.rsel.length)openPick([...ui.rsel])},
+ pickAll:b=>{document.querySelectorAll('[data-pick]:not(:disabled)').forEach(x=>x.checked=!!b.dataset.v);ui.pick=[...document.querySelectorAll('[data-pick]:checked:not(:disabled)')].map(x=>x.value);refreshPick()},
+ ffAll:b=>{b.closest('form').querySelectorAll('input[name=ff]:not(:disabled)').forEach(x=>x.checked=!!b.dataset.v)},
+ remind:b=>{const p=po(b.dataset.id);if(!p)return;notify(p.supplierEmail,'Reminder: packing details & documents needed',p.requestNote,p.id);touch(p);save();toast(`Reminder sent to ${p.supplierName}.`)},
+ sampleCsv:()=>{$('#csvText').value=SAMPLE_CSV;toast('Sample CSV inserted — click Import to list.')}
+};
+const FORM={
+ sendRfq:f=>{const p=po(f.dataset.id);if(!p)return;const pick=[...f.querySelectorAll('input[name=ff]:checked:not(:disabled)')].map(x=>low(x.value));
+  if(!pick.length){toast('Tick at least one forwarder.');return}
+  if(p.status==='docs_submitted'){dispatchRfq(p,pick);notify('logistics','RFQ dispatched',`PO ${p.poNumber} sent to ${pick.length} forwarder(s).`,p.id);save();render();toast(`RFQ for PO ${p.poNumber} sent to ${pick.map(ffName).join(', ')}.`);return}
+  if(p.status==='rfq_open'){const add=pick.filter(e=>!p.invitedForwarderEmails.map(low).includes(e));if(!add.length){toast('Those forwarders are already on this RFQ.');return}
+   p.invitedForwarderEmails.push(...add);touch(p);add.forEach(e=>notify(e,'New RFQ open',`PO ${p.poNumber} — ${p.packing.units} ${p.packing.mode}, ${p.packing.grossKg} kg, ${p.packing.cbm} CBM ${p.originPort} → ${p.destinationPort}. Please quote.`,p.id));
+   save();render();toast(`Added ${add.map(ffName).join(', ')} to the RFQ for PO ${p.poNumber}.`)}},
+ pickff:()=>{const P=ui.modal.ids.map(po).filter(Boolean);if(!ui.pick.length){toast('Choose at least one forwarder.');return}
+  let pos=0,inv=0;P.forEach(p=>{const n=rfqSend(p,ui.pick);if(n){pos++;inv+=n}});const names=ui.pick.map(ffName);
+  ui.modal=null;ui.rsel=[];save();render();
+  toast(pos?(P.length===1?`RFQ for PO ${P[0].poNumber} sent to ${names.join(', ')}.`:`RFQ sent for ${pos} PO(s) — ${inv} forwarder invitation(s).`):'Those forwarders are already on the RFQ.')},
+ nfaSave:f=>{const p=po(f.dataset.id);if(!p?.nfa)return;p.nfa.justification=f.elements.j.value.slice(0,600);touch(p);save();toast('Justification saved.')},
+ pofetch:()=>{ui.fetchedAt=loc(new Date());ui.psel=[];render();const n=poRows().length;toast(`Fetched ${n} PO(s) from Ariba${ui.pf.pg?` · ${PG[ui.pf.pg]}`:''}${ui.pf.mg?` · ${ui.pf.mg}`:''}.`)},
+ mail:()=>{const F=feedRows(),R=ui.modal.nums.map(n=>F.find(r=>r.poNumber===n)).filter(Boolean);let sent=0;
+  R.forEach(r=>{const subj=mailFill(ui.mailT.subject,r),body=mailFill(ui.mailT.body,r),email=low(r.supplierEmail);let p=r.po;
+   if(!p){const c=db.catalog.find(x=>x.poNumber===r.poNumber);if(!c)return;p={...c,id:'PO-'+c.poNumber,supplierEmail:email,status:'po_issued',requestNote:body,autoDispatchRfq:false,invitedForwarderEmails:[],awardedForwarderEmail:'',awardedForwarderCompany:'',aribaPoRef:'',aribaSyncStatus:'',packing:null,documents:[],quotes:[],shipment:null,tracking:[],emailLog:[],createdAt:nowIso(),updatedAt:nowIso()};delete p.source;db.pos.push(p);
+    if(!db.stakeholders.some(s=>low(s.email)===email))db.stakeholders.push({id:c.vendorCode||uid('V'),type:'supplier',vendorCode:c.vendorCode,companyName:c.supplierName,contactName:'',email,purchaseGroup:c.purchaseGroup,city:''})}
+   else if(p.status!=='po_issued')return;
+   p.requestNote=body;p.emailLog=[...(p.emailLog||[]),{to:email,subject:subj,at:nowIso()}];touch(p);notify(email,subj,body.slice(0,240),p.id);sent++});
+  if(sent)notify('logistics','Suppliers emailed for shipment details',`${sent} email(s) sent: ${R.map(r=>r.poNumber).join(', ')}.`,'');
+  ui.modal=null;ui.psel=[];save();render();toast(sent?`${sent} email(s) sent — suppliers can reply in the Supplier Portal. Responses appear in Supplier Responses.`:'Nothing sent.')},
+ sapTest:f=>{const q=f.elements.po.value.trim();ui.sapResult={q,found:db.catalog.find(c=>c.poNumber===q)};render()},
+ csv:async f=>{const file=$('#csvFile').files[0];let t=$('#csvText').value;if(file){if(file.size>2e6){toast('CSV is over 2 MB.');return}t=await file.text()}if(!t.trim()){toast('Choose a CSV file or paste CSV first.');return}importCsv(t)},
+ catAdd:f=>{const d=Object.fromEntries(new FormData(f));if(feedRows().some(c=>c.poNumber===d.poNumber)){toast('That PO number is already in the list.');return}
+  const g=/^M/.test(d.pgCode)?'Material':'Equipment';
+  db.catalog.push({id:d.poNumber,poNumber:d.poNumber,pgCode:d.pgCode,mgName:d.mgName.trim(),poDate:d.poDate||loc(new Date()),purchaseGroup:g,description:d.description,supplierName:d.supplierName,supplierEmail:low(d.supplierEmail),vendorCode:d.vendorCode,plant:(SHIPTO[+d.shipTo]||SHIPTO[0])[0],originPort:d.originPort,destinationPort:(SHIPTO[+d.shipTo]||SHIPTO[0])[1],incoterms:d.incoterms,deliveryDate:d.deliveryDate,items:[{line:10,material:d.material||'',desc:d.description,qty:num(d.qty)||1,unit:d.unit||'EA'}],source:'manual'});
+  ui.modal=null;ui.pf={pg:'',mg:'',sup:'',dest:'',q:'',st:'new'};ui.psel=[];save();render();toast(`PO ${d.poNumber} added — it's under Not requested, ready to email the supplier.`)},
+ issue:f=>{const c=ui.modal.cat;const fd=new FormData(f);const email=low(fd.get('supplierEmail'));
+  if(db.pos.some(p=>p.poNumber===c.poNumber)){toast('Already issued.');return}
+  const p={...c,id:'PO-'+c.poNumber,supplierEmail:email,status:'po_issued',requestNote:String(fd.get('note')||'').slice(0,1000),autoDispatchRfq:fd.get('auto')==='on',invitedForwarderEmails:fd.getAll('ff').map(low),awardedForwarderEmail:'',awardedForwarderCompany:'',aribaPoRef:'',aribaSyncStatus:'',packing:null,documents:[],quotes:[],shipment:null,tracking:[],createdAt:nowIso(),updatedAt:nowIso()};
+  delete p.source;db.pos.push(p);
+  if(!db.stakeholders.some(s=>low(s.email)===email))db.stakeholders.push({id:c.vendorCode||uid('V'),type:'supplier',vendorCode:c.vendorCode,companyName:c.supplierName,contactName:'',email,purchaseGroup:c.purchaseGroup,city:''});
+  notify(email,'Packing details requested',`PO ${p.poNumber}: ${p.requestNote}`,p.id);notify('logistics','PO issued to supplier',`PO ${p.poNumber} sent to ${p.supplierName}.`,p.id);
+  save();ui.modal=null;ui.tab='pos';render();toast(`PO ${p.poNumber} issued. ${p.supplierName} can now fill packing details in the Supplier Portal.`)},
+ note:f=>{const p=po(f.elements.id.value);p.requestNote=f.elements.note.value.slice(0,1000);touch(p);notify(p.supplierEmail,'Updated request from Logistics Center',`PO ${p.poNumber}: ${p.requestNote}`,p.id);save();render();toast('Request note saved and resent to the supplier.')},
+ ffSave:f=>{const d=Object.fromEntries(new FormData(f));d.serviceModes=new FormData(f).getAll('mode');delete d.mode;d.email=low(d.email);
+  const dup=db.stakeholders.find(s=>low(s.email)===d.email&&s.id!==ui.editId);if(dup){toast('Another partner already uses that email.');return}
+  if(ui.editId){Object.assign(db.stakeholders.find(s=>s.id===ui.editId),d)}else{if(db.stakeholders.some(s=>s.id===d.ffCode)){toast('That FF code exists.');return}db.stakeholders.push({id:d.ffCode,type:'ff',...d})}
+  ui.editId=null;ui.editType=null;save();render();toast('Forwarder saved.')},
+ supSave:f=>{const d=Object.fromEntries(new FormData(f));d.email=low(d.email);
+  const dup=db.stakeholders.find(s=>low(s.email)===d.email&&s.id!==ui.editId);if(dup){toast('Another partner already uses that email.');return}
+  if(ui.editId){Object.assign(db.stakeholders.find(s=>s.id===ui.editId),d)}else{if(db.stakeholders.some(s=>s.id===d.vendorCode)){toast('That vendor code exists.');return}db.stakeholders.push({id:d.vendorCode,type:'supplier',...d})}
+  ui.editId=null;ui.editType=null;save();render();toast('Supplier saved.')},
+ pack:f=>{const p=po(f.dataset.id);if(!p)return;const d=Object.fromEntries(new FormData(f));
+  const miss=MUST.filter(t=>!p.documents.some(x=>x.type===t));if(miss.length){toast('Upload required document(s) first: '+miss.join(', '));return}
+  if(num(d.grossKg)<num(d.netKg)){toast('Gross weight must be at least the net weight.');return}
+  const k={coo:(d.coo||'').trim().slice(0,60),originPort:(d.originPort||'').trim().slice(0,60),destPort:(d.destPort||'').trim().slice(0,60),mode:d.mode==='cartons'?'cartons':'boxes',qtyAsPerPo:num(d.qtyAsPerPo),units:num(d.units),cratesPerUnit:num(d.cratesPerUnit),mL:num(d.mL),mW:num(d.mW),mH:num(d.mH),uL:num(d.uL),uW:num(d.uW),uH:num(d.uH),netKg:num(d.netKg),grossKg:num(d.grossKg),perCountKg:num(d.perCountKg),pickupReadyDate:d.pickupReadyDate,remarks:(d.remarks||'').slice(0,500),submittedAt:nowIso()};
+  k.totalCrates=k.units*k.cratesPerUnit;k.cbm=cbmOf(k);p.packing=k;touch(p);
+  notify('logistics','Supplier submitted packing & documents',`${p.supplierName} submitted specs (${k.units} ${k.mode}, ${k.grossKg} kg, ${k.cbm} CBM) and ${p.documents.length} document(s) for PO ${p.poNumber}.`,p.id);
+  if(p.autoDispatchRfq&&p.invitedForwarderEmails.length&&p.status==='po_issued'){dispatchRfq(p,p.invitedForwarderEmails);toast('Submitted. RFQ sent automatically to the invited forwarders.')}
+  else{p.status='docs_submitted';toast(missingDocs(p).length?`Submitted. Still missing: ${missingDocs(p).join(', ')} — this PO stays in Action needed until uploaded.`:'Submitted. The PO moved to your Submitted tab.')}
+  ui.openPo='';save();render()},
+ quote:f=>{const p=po(f.dataset.id);const m=me();if(!p||!m)return;if(p.status!=='rfq_open'){toast('This RFQ is closed.');return}
+  const d=Object.fromEntries(new FormData(f));const e=low(m.email);let q=p.quotes.find(x=>low(x.ffEmail)===e);const isNew=!q;
+  if(!q){q={id:`Q-${p.poNumber}-${m.id}`,ffEmail:e,ffCompany:m.companyName,status:'submitted'};p.quotes.push(q)}
+  Object.assign(q,{baseUsd:num(d.baseUsd),surchargeUsd:num(d.surchargeUsd),totalUsd:num(d.baseUsd)+num(d.surchargeUsd),transitDays:Math.round(num(d.transitDays)),carrier:d.carrier.slice(0,60),route:d.route.slice(0,100),validUntil:d.validUntil,remarks:(d.remarks||'').slice(0,500),at:nowIso()});touch(p);
+  notify('logistics',isNew?'New RFQ quote received':'RFQ quote revised',`${m.companyName} quoted ${usd(q.totalUsd)} / ${q.transitDays} days for PO ${p.poNumber}.`,p.id);
+  save();render();toast(isNew?'Quote submitted.':'Quote updated.')},
+ ship:f=>{const p=po(f.dataset.id);if(!p)return;if(p.status==='delivered'){toast('Delivered shipments are locked.');return}
+  const d=Object.fromEntries(new FormData(f));const c=awbCheck(d.awb);if(!c.ok){toast('Fix the AWB number first: '+c.msg);return}
+  if(d.milestone==='delivered'&&!d.actualDelivery){toast('Add the actual delivery time before marking Delivered.');return}
+  const prev=p.shipment?.milestone;p.shipment={...d,awb:c.awb};delete p.shipment.note;p.shipment.note=d.note||p.shipment?.note||'';
+  if(prev!==d.milestone||d.note)p.tracking.push({id:uid('T'),milestone:d.milestone,note:d.note||MILE[d.milestone],at:loc(new Date()),by:p.awardedForwarderCompany});
+  p.status=d.milestone==='delivered'?'delivered':['awaiting_pickup'].includes(d.milestone)?'ff_awarded':'in_transit';touch(p);
+  const msg=`PO ${p.poNumber} · AWB ${c.awb}: ${MILE[d.milestone]}${d.note?' — '+d.note:''}`;
+  notify('logistics',d.milestone==='delivered'?'Shipment delivered':'Shipment update',msg,p.id);notify(p.supplierEmail,d.milestone==='delivered'?'Shipment delivered':'Shipment update',msg,p.id);
+  save();render();toast(d.milestone==='delivered'?'Marked delivered. Logistics Center and supplier notified; shipment locked.':'Update saved and stakeholders notified.')}
+};
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;if(b.tagName==='A')e.preventDefault();const a=ACT[b.dataset.act];if(a){if(b.dataset.act!=='closeBg'&&b.dataset.act!=='closePrev')e.stopPropagation();a(b,e)}});
+document.addEventListener('submit',e=>{const f=e.target;if(!f.dataset.form)return;e.preventDefault();const fn=FORM[f.dataset.form];if(fn)fn(f)});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.id==='search'){ui.q=t.value;$('#poList').innerHTML=poTable();return}
+ if(t.name==='supplierName'&&t.form?.dataset.form==='catAdd'){const x=sups().find(v=>v.companyName===t.value);if(x){t.form.elements.supplierEmail.value=x.email;t.form.elements.vendorCode.value=x.vendorCode||''}}
+ if(t.id==='pfq'){ui.pf.q=t.value;refreshPos();return}
+ if(t.id==='qfq'){ui.qf.q=t.value;const pos=t.selectionStart;render();const n=$('#qfq');if(n){n.focus();n.setSelectionRange(pos,pos)}return}
+ if(t.id==='mSubj'||t.id==='mBody'){ui.mailT[t.id==='mSubj'?'subject':'body']=t.value;const r=feedRows().find(x=>x.poNumber===ui.modal.nums[0]);$('#mPrev').innerHTML=mailPrev(r);return}
+ if(t.id==='pickQ'){ui.pickQ=t.value;const pos=t.selectionStart;renderModal();const n=$('#pickQ');if(n){n.focus();n.setSelectionRange(pos,pos)}return}
+ if(t.dataset.pick!==undefined){ui.pick=t.checked?[...new Set([...ui.pick,t.value])]:ui.pick.filter(x=>x!==t.value);refreshPick();return}
+ if(t.id==='rq'){ui.rf.q=t.value;refreshResp();return}
+ if(t.dataset.calc!==undefined)refreshCalcs();
+ if(t.dataset.awb!==undefined){const c=awbCheck(t.value);const o=t.parentElement.querySelector('[data-out=awb]');o.textContent=c.msg;o.className='awbres '+(c.ok?'ok':c.empty?'small':'bad');const car=t.form.elements.carrier;if(c.ok&&c.airline&&!car.value)car.value=c.airline}});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.id==='who'){const v=t.value;if(v==='logistics'){ui.role='logistics';ui.as=''}else{const i=v.indexOf(':');ui.role=v.slice(0,i);ui.as=v.slice(i+1)}ui.modal=null;ui.preview=null;ui.openPo=null;ui.stab='need';ui.ftab='quote';render();window.scrollTo(0,0);return}
+ if(['xfg','xfd','xfr'].includes(t.id)){ui.xf[{xfg:'grp',xfd:'dest',xfr:'reg'}[t.id]]=t.value;render();return}
+ if(t.id==='pfpg'){ui.pf.pg=t.value;ui.pf.mg='';ui.psel=[];render();return}
+ if(t.id==='pfmg'||t.id==='pfsup'||t.id==='pfdest'){ui.pf[{pfmg:'mg',pfsup:'sup',pfdest:'dest'}[t.id]]=t.value;ui.psel=[];refreshPos();return}
+ if(['rsup','rgrp','rdocs'].includes(t.id)){ui.rf[{rsup:'sup',rgrp:'grp',rdocs:'docs',rst:'st'}[t.id]]=t.value;ui.rsel=[];refreshResp();return}
+ if(t.id==='group'){ui.group=t.value;$('#poList').innerHTML=poTable();return}
+ if(t.dataset.upload){const file=t.files[0];if(!file)return;if(file.size>MAXFILE){toast(`${file.name} is ${(file.size/1024).toFixed(0)} KB — the limit is ${MAXFILE/1024} KB.`);t.value='';return}
+  const p=po(t.dataset.id);const r=new FileReader();r.onload=()=>{p.documents.push({id:uid('D'),type:t.dataset.upload,name:file.name.slice(0,120),mime:file.type||'application/octet-stream',size:file.size,dataUrl:r.result,uploadedBy:t.dataset.ff?'forwarder':'supplier',by:me()?.companyName||'',at:nowIso()});touch(p);
+   if(t.dataset.ff)notify('logistics',`${t.dataset.upload} uploaded`,`${me()?.companyName||'Forwarder'} uploaded ${t.dataset.upload} for PO ${p.poNumber}.`,p.id);
+   const keep=t.form?Object.fromEntries(new FormData(t.form)):null;save();render();
+   if(keep){const f=document.querySelector(`form[data-id="${CSS.escape(p.id)}"]`);if(f)for(const[k,v]of Object.entries(keep)){const el=f.elements[k];if(!el||el.type==='file')continue;if(el instanceof RadioNodeList){[...el].forEach(x=>x.checked=x.value===v)}else el.value=v}refreshCalcs()}
+   toast(`${file.name} uploaded.`)};r.readAsDataURL(file)}});
+if((!db.pos.length&&!db.stakeholders.length&&!db.catalog.length)||db.ver!==15){db=blank();seed(true);db.ver=15;save()}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(ui.preview){ui.preview=null;renderModal()}else if(ui.modal){ui.modal=null;renderModal()}}});
+render();
+}
+</script>
+</body>
+</html>
